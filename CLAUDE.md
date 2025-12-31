@@ -28,6 +28,7 @@
 
 - @docs/specs/data-model.md — 資料模型概要
 - @docs/specs/module-structure.md — 模組結構概要
+- @docs/specs/supabase-schema.md — Supabase 資料庫結構
 
 ### 其他
 
