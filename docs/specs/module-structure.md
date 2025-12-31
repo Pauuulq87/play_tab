@@ -7,110 +7,135 @@
 
 ## 概述
 
-本文件描述專案的模組分工，供 AI 代理查閱。
-保持簡潔，降低 token 成本。
+本文件描述瀏覽器分頁管理插件的模組架構，供 AI 代理查閱。
 
 ---
 
-## 模組清單
+## 目錄結構
 
-| 模組 | 路徑 | 職責 |
-|-----|------|------|
-| [模組 1] | src/[path] | [負責什麼] |
-| [模組 2] | src/[path] | [負責什麼] |
-| [模組 3] | src/[path] | [負責什麼] |
+```
+src/main/
+├── typescript/
+│   ├── components/         # React 元件
+│   │   ├── layout/         # 佈局元件
+│   │   │   ├── LeftSidebar.tsx
+│   │   │   ├── MainContent.tsx
+│   │   │   └── RightSidebar.tsx
+│   │   ├── ui/             # 通用 UI 元件
+│   │   │   └── SettingsModal.tsx
+│   │   └── index.ts        # 統一匯出
+│   │
+│   ├── core/               # 核心邏輯
+│   │   └── App.tsx         # 應用程式進入點
+│   │
+│   ├── models/             # 資料模型（TypeScript 型別）
+│   │   └── types.ts
+│   │
+│   ├── services/           # 服務層
+│   │   ├── tabService.ts   # Chrome Tabs API 封裝
+│   │   └── storageService.ts # Chrome Storage API 封裝
+│   │
+│   ├── utils/              # 工具函式
+│   │   └── helpers.ts
+│   │
+│   ├── api/                # API 介面（未來雲端同步）
+│   │
+│   └── pages/              # 頁面元件
+│       └── options.tsx     # 選項頁面
+│
+└── resources/
+    ├── config/             # 設定檔
+    │   └── constants.ts    # 常數定義
+    │
+    └── assets/             # 靜態資源
+        └── icons/          # 插件圖示
+```
 
 ---
 
-## 模組詳情
+## 模組職責
 
-### [模組 1]
+### components/layout/
 
-```
-路徑：src/[path]/
-職責：[一句話說明]
-對外接口：[提供什麼功能給其他模組]
-依賴：[使用哪些其他模組]
-```
+| 元件 | 職責 |
+|-----|------|
+| LeftSidebar | 左側導航：使用者資訊、搜尋、Spaces 列表 |
+| MainContent | 中央區域：收藏集卡片網格、工具列 |
+| RightSidebar | 右側面板：開啟中的分頁列表 |
 
-主要檔案：
-- `[檔名].py` — [用途]
-- `[檔名].py` — [用途]
+### components/ui/
 
-### [模組 2]
+| 元件 | 職責 |
+|-----|------|
+| SettingsModal | 設定彈窗：帳戶資訊、偏好設定 |
 
-```
-路徑：src/[path]/
-職責：[一句話說明]
-對外接口：[提供什麼功能]
-依賴：[使用哪些其他模組]
-```
+### core/
 
-主要檔案：
-- `[檔名].py` — [用途]
+| 檔案 | 職責 |
+|-----|------|
+| App.tsx | 應用根元件，管理全域狀態（主題切換） |
 
-### [模組 3]
+### models/
 
-```
-路徑：src/[path]/
-職責：[一句話說明]
-對外接口：[提供什麼功能]
-依賴：[使用哪些其他模組]
-```
+| 檔案 | 職責 |
+|-----|------|
+| types.ts | TypeScript 介面定義：TabItem、CollectionGroup、SidebarItem |
+
+### services/
+
+| 檔案 | 職責 |
+|-----|------|
+| tabService.ts | 封裝 chrome.tabs API（查詢、關閉、切換分頁） |
+| storageService.ts | 封裝 chrome.storage API（讀寫設定、書籤） |
+
+### resources/config/
+
+| 檔案 | 職責 |
+|-----|------|
+| constants.ts | Mock 資料、預設值、靜態配置 |
 
 ---
 
 ## 依賴關係
 
 ```
-[模組 A] --使用--> [模組 B]
-[模組 A] --使用--> [模組 C]
-[模組 B] --使用--> [模組 D]
+App.tsx
+├── LeftSidebar
+│   └── constants.ts (SIDEBAR_ITEMS)
+├── MainContent
+│   └── constants.ts (MOCK_COLLECTIONS)
+├── RightSidebar
+│   └── constants.ts (OPEN_TABS)
+│   └── tabService.ts (未來整合)
+└── SettingsModal
+    └── storageService.ts (未來整合)
 ```
-
-禁止循環依賴。
 
 ---
 
-## 分層架構
+## 匯入慣例
 
+### 路徑別名
+
+使用 `@/` 代表 `src/main/typescript/`
+
+```typescript
+// 範例
+import { TabItem } from '@/models/types';
+import { LeftSidebar } from '@/components/layout';
+import { SIDEBAR_ITEMS } from '@/resources/config/constants';
 ```
-層級          模組                    職責
-------------------------------------------------
-API 層       api/                    處理請求/回應
-服務層       services/               業務邏輯
-資料層       models/, repositories/  資料存取
-工具層       utils/                  共用工具
-```
 
-### 呼叫規則
+### 匯出策略
 
-- 上層可呼叫下層
-- 下層不可呼叫上層
-- 同層盡量不互相呼叫
-
----
-
-## 共用工具
-
-| 工具 | 路徑 | 用途 |
-|-----|------|------|
-| [名稱] | src/utils/[file] | [做什麼] |
-| [名稱] | src/utils/[file] | [做什麼] |
-
----
-
-## 新增模組規則
-
-1. 確認沒有現有模組可擴充
-2. 放在對應的分層目錄
-3. 更新本文件
-4. 不建立重複功能
+- 元件使用 `export default`
+- 型別使用 `export interface`
+- 工具函式使用 `export const`
 
 ---
 
 ## 變更記錄
 
-| 日期 | 變更 | 原因 |
+| 日期 | 變更 | 影響 |
 |-----|------|-----|
-| 2025-12-31 | [改了什麼] | [為什麼] |
+| 2025-12-31 | 初始化模組結構 | 建立專案架構 |

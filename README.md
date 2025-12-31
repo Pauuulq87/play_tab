@@ -165,10 +165,34 @@ const TabList = () => {
 
 ## 快速開始
 
-1. 閱讀 `user/docs/CLAUDE.md` 了解專案規範
-2. 複製 `.env.example` 為 `.env` 並填入設定
-3. 安裝依賴：`npm install`
-4. 開發模式：`npm run dev`
+### 🚀 立即開始
+
+```bash
+# 安裝依賴
+npm install
+
+# 開發模式
+npm run dev
+
+# 開啟瀏覽器
+open http://localhost:3000
+```
+
+### 📚 文件導覽
+
+- **快速入門**：閱讀 `QUICKSTART.md`
+- **詳細設置**：閱讀 `docs/SETUP.md`
+- **專案規範**：閱讀 `CLAUDE.md`
+
+### ✅ 專案狀態
+
+- [x] 前端架構初始化完成
+- [x] 三欄式介面實作完成
+- [x] 深色模式支援
+- [x] Chrome Extension 基礎設定
+- [ ] Chrome Tabs API 整合
+- [ ] 拖曳互動功能
+- [ ] 資料持久化
 
 ---
 

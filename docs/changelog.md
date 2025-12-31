@@ -21,6 +21,27 @@
 
 ---
 
+## [1.1.0] - 2025-12-31
+
+### 新增 (Added)
+
+- 完整前端專案結構（React + Vite + TypeScript + Tailwind CSS）
+- 三欄式介面佈局（LeftSidebar、MainContent、RightSidebar）
+- 深色模式支援
+- 設定彈窗元件
+- Chrome Extension Manifest V3 設定
+- Background Service Worker
+- 規格文件更新（tech-choices.md, data-model.md, module-structure.md）
+- 專案設置指南（docs/SETUP.md）
+- Mock 資料（書籤收藏集、開啟中分頁）
+
+### 變更 (Changed)
+
+- 從參考專案複製核心元件並適配專案結構
+- 調整 TypeScript 路徑別名為 `@/`
+
+---
+
 ## [1.0.0] - 2025-12-31
 
 ### 新增 (Added)
