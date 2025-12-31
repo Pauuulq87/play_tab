@@ -68,6 +68,11 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ onSaveTab }) => {
     }
   };
 
+  const handleDragStart = (e: React.DragEvent, tab: TabItem) => {
+    e.dataTransfer.setData('application/json', JSON.stringify(tab));
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
   return (
     <aside className="w-80 flex-shrink-0 flex flex-col border-l border-steel dark:border-gray-700 h-screen bg-charcoal dark:bg-dark-surface text-paper dark:text-gray-300 transition-colors duration-200">
       {/* Header */}
@@ -106,6 +111,8 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ onSaveTab }) => {
             <div 
               key={tab.id}
               onClick={() => handleTabClick(tab.id)}
+              draggable
+              onDragStart={(e) => handleDragStart(e, tab)}
               className="
                 group relative bg-steel/20 dark:bg-black/20 border border-transparent hover:border-l-4 hover:border-l-brand-hover hover:bg-steel/30 dark:hover:bg-black/40
                 px-3 py-3 transition-all cursor-pointer min-h-[40px] flex items-center gap-2

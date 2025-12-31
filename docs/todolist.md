@@ -11,7 +11,7 @@
 |-----|:----:|-----|
 | 前端三欄式介面 | 已完成 | 基礎佈局與深色模式 |
 | 資料模型定義 | 已完成 | types.ts + UserSettings |
-| Mock 資料 | 已完成 | constants.tsx |
+| Mock 資料 | 已完成 | constants.tsx (已由真實資料取代) |
 | Chrome Extension 基礎設定 | 已完成 | manifest.json |
 | 服務層 (services/) | 已完成 | tabService, storageService, supabaseService |
 | Chrome Tabs API 整合 | 已完成 | 即時查詢、切換、關閉、轉存 |
@@ -19,7 +19,10 @@
 | 匯出/匯入功能 | 已完成 | JSON 格式，支援合併策略 |
 | 重複分頁偵測 | 已完成 | 自動偵測與關閉 |
 | Tab Groups 支援 | 已完成 | 建立、查詢、更新群組 |
-| Supabase 整合 | 已完成 | 資料表設計、Auth、雙向同步 |
+| Supabase 整合 | 已完成 | 資料表設計、Auth、雙向同步、資料表已建立 |
+| 介面與服務層整合 | 已完成 | App, MainContent, LeftSidebar, SettingsModal 已連動 |
+| 拖曳儲存功能 | 已完成 | Native HTML5 Drag & Drop 實作 |
+| 測試與發布 | 待開發 | 整合測試、打包、上架 |
 
 ---
 
@@ -61,6 +64,26 @@
 - [x] 5.1 設計 Supabase 資料表結構 [已完成]
 - [x] 5.2 整合 Supabase Auth [已完成]
 - [x] 5.3 實作資料雙向同步 [已完成]
+- [x] 5.4 在 Supabase 執行資料表建立 SQL [已完成]
+
+### 階段 6：介面整合與功能打磨 (UI Integration)
+
+- [x] 6.1 整合 `App.tsx`：應用程式啟動時呼叫 `initializeData()` [已完成]
+- [x] 6.2 整合 `MainContent.tsx`：讀取本地 `chrome.storage` 資料取代 Mock [已完成]
+- [x] 6.3 整合 `LeftSidebar.tsx`：動態讀取收藏集結構渲染導航列 [已完成]
+- [x] 6.4 實作 `RightSidebar` → `MainContent` 拖曳儲存邏輯 (Native Drag & Drop) [已完成]
+- [x] 6.5 整合 `SettingsModal.tsx`：實作登入/註冊 UI 接上 Supabase Auth [已完成]
+- [x] 6.6 整合 `SettingsModal.tsx`：實作同步開關與手動同步按鈕 [已完成]
+- [x] 6.7 整合 `SettingsModal.tsx`：實作 JSON 匯出/匯入 UI [已完成]
+- [x] 6.8 整合 `SettingsModal.tsx`：實作重複分頁偵測與一鍵清除 UI [已完成]
+
+### 階段 7：測試與發布準備 (Testing & Release)
+
+- [ ] 7.1 本地開發環境整合測試 [待處理]
+- [ ] 7.2 Chrome Extension 打包測試 (側載安裝) [待處理]
+- [ ] 7.3 跨裝置同步功能驗證 [待處理]
+- [ ] 7.4 效能與安全性檢查 [待處理]
+- [ ] 7.5 準備 Chrome Web Store 上架素材 [待處理]
 
 ---
 
@@ -68,6 +91,9 @@
 
 | 日期 | 變更內容 | 狀態 |
 |-----|---------|:----:|
+| 2025-12-31 | 完成階段 6：介面整合與服務層接軌（App, Main, Sidebar, Settings） | 已完成 |
+| 2025-12-31 | 新增階段 6、7：介面整合與測試發布任務清單 | 已完成 |
+| 2025-12-31 | 透過 MCP 在 Supabase 執行資料表建立 SQL | 已完成 |
 | 2025-12-31 | 完成階段 5：雲端同步 (Supabase 資料表設計、Auth 整合、雙向同步) | 已完成 |
 | 2025-12-31 | 完成階段 4：進階功能 (JSON 匯出/匯入、重複分頁偵測、Tab Groups 支援) | 已完成 |
 | 2025-12-31 | 完成階段 3：Chrome API 整合 (即時分頁查詢、分頁操作、轉存功能) | 已完成 |

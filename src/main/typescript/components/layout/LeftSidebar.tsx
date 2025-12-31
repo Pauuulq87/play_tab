@@ -1,11 +1,14 @@
 import React from 'react';
-import { Search, Link as LinkIcon, ArrowRight, Plus, ArrowDownAZ, LogOut } from 'lucide-react';
+import { Search, Link as LinkIcon, ArrowRight, Plus, ArrowDownAZ, LogOut, LayoutGrid } from 'lucide-react';
 import { SIDEBAR_ITEMS } from '../../../resources/config/constants';
+import { CollectionGroup } from '@/models/types';
 
 interface LeftSidebarProps {
+  collections: CollectionGroup[];
+  onRefresh: () => void;
 }
 
-const LeftSidebar: React.FC<LeftSidebarProps> = () => {
+const LeftSidebar: React.FC<LeftSidebarProps> = ({ collections, onRefresh }) => {
   return (
     <aside className="w-64 flex-shrink-0 flex flex-col border-r border-steel dark:border-gray-700 h-screen bg-paper dark:bg-dark-surface text-charcoal dark:text-gray-200 select-none transition-colors duration-200">
       {/* User Header */}
@@ -56,6 +59,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = () => {
 
       {/* Spaces List */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-2 space-y-1 pb-4">
+        {/* Fixed Spaces */}
         {SIDEBAR_ITEMS.map((item) => (
           <div 
             key={item.id}
@@ -68,6 +72,21 @@ const LeftSidebar: React.FC<LeftSidebarProps> = () => {
           >
             {item.icon}
             <span className="font-sans truncate">{item.label}</span>
+          </div>
+        ))}
+
+        {/* Dynamic Collections List */}
+        <div className="pt-4 pb-2 px-2">
+          <span className="text-[10px] font-normal tracking-widest text-steel dark:text-gray-600 font-sans uppercase">Collections</span>
+        </div>
+        {collections.map((collection) => (
+          <div 
+            key={collection.id}
+            className="flex items-center gap-3 px-3 py-1.5 text-xs text-steel dark:text-gray-400 hover:text-brand-hover cursor-pointer transition-all border border-transparent hover:bg-steel/5 dark:hover:bg-white/5"
+          >
+            <LayoutGrid size={12} />
+            <span className="font-sans truncate">{collection.title}</span>
+            <span className="ml-auto text-[10px] opacity-50">{collection.items.length}</span>
           </div>
         ))}
       </div>
