@@ -21,6 +21,10 @@
 
 ## 開發任務清單
 
+### 階段 0：準備工作 (Preparation)
+
+- [x] 0.1 建立 API 準備清單與說明文件 [已完成]
+
 ### 階段 1：服務層基礎建設 (Core Services)
 
 - [ ] 1.1 建立 `tabService.ts`：封裝 Chrome Tabs API [待處理]
@@ -60,5 +64,7 @@
 
 | 日期 | 變更內容 | 狀態 |
 |-----|---------|:----:|
+| 2025-12-31 | 建立 API 準備清單文件 (`user/docs/api-preparation.md`) | 已完成 |
+| 2025-12-31 | 將 `backlog.md` 重新命名為 `todolist.md` | 已完成 |
 | 2025-12-31 | 初始化 Backlog 文件 | 已完成 |
 

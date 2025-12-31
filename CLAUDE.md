@@ -77,6 +77,7 @@
 
 `user/` 目錄為私人區域：
 
+- @user/docs/api-preparation.md — API 準備與取得說明
 - 未授權不得讀寫
 - 不得納入版控
 - 不得自動化處理
