@@ -18,8 +18,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, isDarkMo
         
         {/* Header */}
         <div className="flex justify-between items-start p-6 pb-2">
-            <h2 className="text-xl font-sans text-white font-medium tracking-wide">Account</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+            <h2 className="text-xl font-sans text-white font-normal tracking-wide">Account</h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-brand-hover transition-colors">
                 <X size={24} strokeWidth={1.5} />
             </button>
         </div>
@@ -29,20 +29,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, isDarkMo
             {/* User Info */}
             <div className="space-y-1 relative">
                 <div className="flex justify-between items-center">
-                    <span className="text-white font-medium text-base">Paul</span>
-                    <button className="text-sm text-gray-300 hover:text-white transition-colors">Log out</button>
+                    <span className="text-white font-normal text-base">Paul</span>
+                    <button className="text-sm text-gray-300 hover:text-brand-hover transition-colors">Log out</button>
                 </div>
                 <div className="text-sm text-gray-400 pb-2">paul.1q87@gmail.com</div>
                 <div className="flex flex-col gap-1.5 text-sm text-gray-300">
-                    <button className="text-left hover:text-white w-fit transition-colors">Edit account</button>
-                    <button className="text-left hover:text-white w-fit transition-colors">Change Password</button>
+                    <button className="text-left hover:text-brand-hover w-fit transition-colors">Edit account</button>
+                    <button className="text-left hover:text-brand-hover w-fit transition-colors">Change Password</button>
                 </div>
                 <div className="border-b border-gray-600 mt-6"></div>
             </div>
 
             {/* General Preferences */}
             <div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-5">General Preferences</h3>
+                <h3 className="text-xs font-normal text-gray-400 uppercase tracking-widest mb-5">General Preferences</h3>
                 <div className="space-y-4">
                     <ToggleRow label="Open cards on the same tab" />
                     <ToggleRow 
@@ -61,24 +61,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, isDarkMo
             {/* Banner */}
             <div className="bg-[#2D3042] px-4 py-3 rounded-none border border-transparent flex items-center justify-center text-center">
                 <span className="text-sm text-gray-300">
-                    不喜歡新分頁的 Play Tab？試試 <span className="text-blue-400 cursor-pointer hover:underline">Play Tab Mini</span>
+                    不喜歡新分頁的 Play Tab？試試 <span className="text-blue-400 cursor-pointer hover:underline hover:text-brand-hover transition-colors">Play Tab Mini</span>
                 </span>
             </div>
 
             {/* Footer Links */}
             <div className="grid grid-cols-3 gap-8 pt-4 border-t border-gray-600">
                 <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">About</h4>
-                    <div className="text-sm text-gray-400 cursor-pointer hover:text-white transition-colors">Keyboard shortcuts</div>
-                    <div className="text-sm text-gray-400 cursor-pointer hover:text-white transition-colors">Submit feedback</div>
+                    <h4 className="text-xs font-normal text-white uppercase tracking-wider">About</h4>
+                    <div className="text-sm text-gray-400 cursor-pointer hover:text-brand-hover transition-colors">Keyboard shortcuts</div>
+                    <div className="text-sm text-gray-400 cursor-pointer hover:text-brand-hover transition-colors">Submit feedback</div>
                 </div>
                 <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Help</h4>
-                    <div className="text-sm text-gray-400 cursor-pointer hover:text-white transition-colors">FAQ</div>
+                    <h4 className="text-xs font-normal text-white uppercase tracking-wider">Help</h4>
+                    <div className="text-sm text-gray-400 cursor-pointer hover:text-brand-hover transition-colors">FAQ</div>
                 </div>
                  <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Data</h4>
-                    <div className="text-sm text-gray-400 cursor-pointer hover:text-white transition-colors">Export Account</div>
+                    <h4 className="text-xs font-normal text-white uppercase tracking-wider">Data</h4>
+                    <div className="text-sm text-gray-400 cursor-pointer hover:text-brand-hover transition-colors">Export Account</div>
                 </div>
             </div>
         </div>
@@ -97,12 +97,12 @@ interface ToggleRowProps {
 
 const ToggleRow: React.FC<ToggleRowProps> = ({ label, checked = false, info = false, icon = null, onClick }) => (
     <div className="flex items-center gap-3 group cursor-pointer" onClick={onClick}>
-        <div className={`w-9 h-5 rounded-full relative transition-colors duration-200 ease-in-out ${checked ? 'bg-blue-500' : 'bg-gray-600 group-hover:bg-gray-500'}`}>
+        <div className={`w-9 h-5 rounded-full relative transition-colors duration-200 ease-in-out ${checked ? 'bg-blue-500' : 'bg-gray-600 group-hover:bg-brand-hover'}`}>
             <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-transform duration-200 shadow-sm ${checked ? 'translate-x-5' : 'translate-x-1'}`}></div>
         </div>
-        <div className="flex items-center text-sm text-gray-300 group-hover:text-white transition-colors select-none">
+        <div className="flex items-center text-sm text-gray-300 group-hover:text-brand-hover transition-colors select-none">
             {label}
-            {info && <Info size={14} className="ml-2 text-gray-500 hover:text-gray-300" />}
+            {info && <Info size={14} className="ml-2 text-gray-500 group-hover:text-brand-hover" />}
             {icon}
         </div>
     </div>

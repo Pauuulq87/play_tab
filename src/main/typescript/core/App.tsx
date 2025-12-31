@@ -19,8 +19,8 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen w-full bg-paper dark:bg-dark-bg overflow-hidden font-sans text-charcoal dark:text-gray-200 transition-colors duration-200">
-      <LeftSidebar onOpenSettings={() => setIsSettingsOpen(true)} />
-      <MainContent />
+      <LeftSidebar />
+      <MainContent isDarkMode={isDarkMode} toggleTheme={() => setIsDarkMode(!isDarkMode)} />
       <RightSidebar />
       <SettingsModal 
         isOpen={isSettingsOpen} 
