@@ -31,6 +31,7 @@
 
 ### 其他
 
+- @docs/todolist.md — 開發進度與待辦事項
 - @docs/changelog.md — 變更日誌
 
 ---
