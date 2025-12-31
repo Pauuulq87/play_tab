@@ -1,0 +1,48 @@
+# User specific
+user/
+user_pauuul/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Output
+output/
+logs/
+
+# Temporary
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Extension specific
+*.crx
+*.pem
+*.zip
