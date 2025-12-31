@@ -27,9 +27,9 @@
 
 ### 階段 1：服務層基礎建設 (Core Services)
 
-- [ ] 1.1 建立 `tabService.ts`：封裝 Chrome Tabs API [待處理]
-- [ ] 1.2 建立 `storageService.ts`：封裝 Chrome Storage API [待處理]
-- [ ] 1.3 建立型別擴充：補充 UserSettings 介面 [待處理]
+- [x] 1.1 建立 `tabService.ts`：封裝 Chrome Tabs API [已完成]
+- [x] 1.2 建立 `storageService.ts`：封裝 Chrome Storage API [已完成]
+- [x] 1.3 建立型別擴充：補充 UserSettings 介面 [已完成]
 
 ### 階段 2：資料持久化 (Data Persistence)
 
@@ -67,4 +67,5 @@
 | 2025-12-31 | 建立 API 準備清單文件 (`user/docs/api-preparation.md`) | 已完成 |
 | 2025-12-31 | 將 `backlog.md` 重新命名為 `todolist.md` | 已完成 |
 | 2025-12-31 | 初始化 Backlog 文件 | 已完成 |
+| 2025-12-31 | 完成階段 1：tabService、storageService、UserSettings 型別擴充 | 已完成 |
 

@@ -21,3 +21,12 @@ export interface SidebarItem {
   isSpace?: boolean;
 }
 
+export interface UserSettings {
+  isDarkMode: boolean;
+  openCardsOnSameTab: boolean;
+  autoCloseTab: boolean;
+  removeDuplicateTabs: boolean;
+  enableShortcuts: boolean;
+  enableTabGroups: boolean;
+}
+
