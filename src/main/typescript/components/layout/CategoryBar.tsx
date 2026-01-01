@@ -8,7 +8,6 @@ interface CategoryBarProps {
   onSelectCategory: (categoryId: string | null) => void;
   onAddCategory: () => void;
   onOpenSettings: () => void;
-  onOpenAccountSettings: () => void;
 }
 
 const CategoryBar: React.FC<CategoryBarProps> = ({
@@ -16,8 +15,7 @@ const CategoryBar: React.FC<CategoryBarProps> = ({
   selectedCategoryId,
   onSelectCategory,
   onAddCategory,
-  onOpenSettings,
-  onOpenAccountSettings
+  onOpenSettings
 }) => {
   return (
     <div className="w-16 flex-shrink-0 flex flex-col border-r border-steel dark:border-gray-700 h-screen bg-charcoal dark:bg-dark-surface text-paper dark:text-gray-300">
@@ -50,20 +48,13 @@ const CategoryBar: React.FC<CategoryBarProps> = ({
       </div>
 
       {/* Bottom Actions */}
-      <div className="border-t border-steel dark:border-gray-700 py-3 space-y-3">
+      <div className="border-t border-steel dark:border-gray-700 py-3">
         <div
           onClick={onOpenSettings}
           className="mx-auto w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:bg-steel/20 dark:hover:bg-white/10 transition-all text-steel dark:text-gray-400 hover:text-brand-hover"
           title="組織設定"
         >
           <Settings size={18} />
-        </div>
-        <div
-          onClick={onOpenAccountSettings}
-          className="mx-auto w-8 h-8 rounded-full bg-steel dark:bg-gray-700 flex items-center justify-center text-xs font-bold cursor-pointer hover:ring-2 hover:ring-brand-hover transition-all"
-          title="Account"
-        >
-          PA
         </div>
       </div>
     </div>

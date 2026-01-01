@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
-import { Search, Link as LinkIcon, ArrowRight, Plus, ArrowDownAZ, LogOut, LayoutGrid, Trash2 } from 'lucide-react';
+import { Search, Link as LinkIcon, ArrowRight, Plus, ArrowDownAZ, LogOut, LayoutGrid, MoreVertical } from 'lucide-react';
 import { SIDEBAR_ITEMS } from '../../../resources/config/constants';
 import { CollectionGroup } from '@/models/types';
-import { createCollection, clearAllCollections } from '@/services/storageService';
+import { createCollection } from '@/services/storageService';
 
 interface LeftSidebarProps {
   collections: CollectionGroup[];
   onRefresh: () => void;
   onSelectCollection?: (collectionId: string | null) => void;
   selectedCollectionId?: string | null;
+  onOpenAccountSettings?: () => void;
 }
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({ 
   collections, 
   onRefresh, 
   onSelectCollection,
-  selectedCollectionId
+  selectedCollectionId,
+  onOpenAccountSettings
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -35,21 +37,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
     } catch (error) {
       console.error('Failed to create collection:', error);
     }
-  };
-
-  const handleResetData = async () => {
-    if (confirm('確定要清除所有收藏集嗎？此動作無法復原。')) {
-      try {
-        await clearAllCollections();
-        onRefresh();
-      } catch (error) {
-        console.error('Failed to clear collections:', error);
-      }
-    }
-  };
-
-  const handleLogout = () => {
-    alert('登出功能需要配置 Supabase 後才能使用。請在設定中登入您的帳戶。');
   };
 
   const handleSortCollections = () => {
@@ -72,21 +59,12 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
           </div>
           <span className="font-sans font-normal text-lg dark:text-white">Paul</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div 
-            onClick={handleResetData}
-            title="清除所有數據"
-            className="cursor-pointer hover:text-red-500 p-1 transition-colors"
-          >
-            <Trash2 size={16} className="text-steel dark:text-gray-400 hover:text-red-500" />
-          </div>
-          <div 
-            onClick={handleLogout}
-            title="登出"
-            className="cursor-pointer hover:text-brand-hover p-1 transition-colors"
-          >
-            <LogOut size={16} className="text-steel dark:text-gray-400" />
-          </div>
+        <div 
+          onClick={onOpenAccountSettings}
+          title="帳戶設定"
+          className="cursor-pointer hover:text-brand-hover p-1 transition-colors"
+        >
+          <MoreVertical size={18} className="text-steel dark:text-gray-400 hover:text-brand-hover" />
         </div>
       </div>
 

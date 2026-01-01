@@ -111,19 +111,19 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen w-full bg-paper dark:bg-dark-bg overflow-hidden font-sans text-charcoal dark:text-gray-200 transition-colors duration-200">
-      <CategoryBar
+      <CategoryBar 
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={setSelectedCategoryId}
         onAddCategory={() => setIsAddCategoryOpen(true)}
         onOpenSettings={() => setIsCategorySettingsOpen(true)}
-        onOpenAccountSettings={() => setIsSettingsOpen(true)}
       />
       <LeftSidebar 
         collections={collections} 
         onRefresh={loadData} 
         onSelectCollection={setSelectedCollectionId}
         selectedCollectionId={selectedCollectionId}
+        onOpenAccountSettings={() => setIsSettingsOpen(true)}
       />
       <MainContent 
         collections={displayedCollections} 
