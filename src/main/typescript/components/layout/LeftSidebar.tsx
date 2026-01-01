@@ -15,7 +15,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   collections, 
   onRefresh, 
   onSelectCollection,
-  selectedCollectionId 
+  selectedCollectionId
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -149,47 +149,33 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
       {/* Spaces List */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-2 space-y-1 pb-4">
-        {/* Fixed Spaces */}
-        {SIDEBAR_ITEMS.map((item) => (
-          <div 
-            key={item.id}
-            onClick={() => onSelectCollection?.(null)}
-            className={`
-              flex items-center gap-3 px-3 py-2 text-sm cursor-pointer transition-all border border-transparent
-              ${item.id === 'my-collections' 
-                ? 'bg-steel/10 dark:bg-white/10 border-steel dark:border-gray-600 text-charcoal dark:text-white font-normal' 
-                : 'text-steel dark:text-gray-400 hover:text-brand-hover hover:border-brand-hover/30 dark:hover:border-brand-hover/30'}
-            `}
-          >
-            {item.icon}
-            <span className="font-sans truncate">{item.label}</span>
+        {/* 使用者建立的 Spaces/Collections */}
+        {filteredCollections.length === 0 ? (
+          <div className="text-center text-xs text-steel dark:text-gray-600 py-8 italic">
+            {searchTerm ? '找不到符合的收藏集' : (
+              <>
+                尚無收藏集
+                <br />
+                點擊右上角 + 新增
+              </>
+            )}
           </div>
-        ))}
-
-        {/* Dynamic Collections List */}
-        <div className="pt-4 pb-2 px-2">
-          <span className="text-[10px] font-normal tracking-widest text-steel dark:text-gray-600 font-sans uppercase">Collections</span>
-        </div>
-        {filteredCollections.map((collection) => (
-          <div 
-            key={collection.id}
-            onClick={() => onSelectCollection?.(collection.id)}
-            className={`flex items-center gap-3 px-3 py-1.5 text-xs cursor-pointer transition-all border border-transparent ${
-              selectedCollectionId === collection.id 
-                ? 'bg-brand-hover/20 border-brand-hover text-brand-hover' 
-                : 'text-steel dark:text-gray-400 hover:text-brand-hover hover:bg-steel/5 dark:hover:bg-white/5'
-            }`}
-          >
-            <LayoutGrid size={12} />
-            <span className="font-sans truncate">{collection.title}</span>
-            <span className="ml-auto text-[10px] opacity-50">{collection.items.length}</span>
-          </div>
-        ))}
-
-        {filteredCollections.length === 0 && searchTerm && (
-          <div className="text-center text-xs text-steel dark:text-gray-600 py-4 italic">
-            找不到符合的收藏集
-          </div>
+        ) : (
+          filteredCollections.map((collection) => (
+            <div 
+              key={collection.id}
+              onClick={() => onSelectCollection?.(collection.id)}
+              className={`flex items-center gap-3 px-3 py-1.5 text-xs cursor-pointer transition-all border border-transparent ${
+                selectedCollectionId === collection.id 
+                  ? 'bg-brand-hover/20 border-brand-hover text-brand-hover' 
+                  : 'text-steel dark:text-gray-400 hover:text-brand-hover hover:bg-steel/5 dark:hover:bg-white/5'
+              }`}
+            >
+              <LayoutGrid size={12} />
+              <span className="font-sans truncate">{collection.title}</span>
+              <span className="ml-auto text-[10px] opacity-50">{collection.items.length}</span>
+            </div>
+          ))
         )}
       </div>
     </aside>

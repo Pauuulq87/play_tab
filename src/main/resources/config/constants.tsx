@@ -10,15 +10,8 @@ import {
 } from 'lucide-react';
 import React from 'react';
 
-export const SIDEBAR_ITEMS: SidebarItem[] = [
-  { id: 'starred', label: '星標收藏 (Starred)', icon: <Star size={16} />, isSpace: true },
-  { id: 'my-collections', label: '我的收藏 (My Collections)', icon: <LayoutGrid size={16} />, isSpace: true },
-  { id: 'shopping', label: '購物清單', icon: <ShoppingBag size={16} />, isSpace: true },
-  { id: 'work', label: '工作', icon: <Briefcase size={16} />, isSpace: true },
-  { id: 'win11', label: 'Win 11 系統', icon: <Monitor size={16} />, isSpace: true },
-  { id: 'map', label: '地圖', icon: <Map size={16} />, isSpace: true },
-  { id: 'study', label: '學習', icon: <BookOpen size={16} />, isSpace: true },
-];
+// 左側選單固定項目（目前為空，所有 Spaces 由使用者自行新增）
+export const SIDEBAR_ITEMS: SidebarItem[] = [];
 
 export const MOCK_COLLECTIONS: CollectionGroup[] = [
   {

@@ -13,6 +13,13 @@ export interface WindowGroup {
   tabs: TabItem[];
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  color: string;
+  order: number;
+}
+
 export interface CollectionGroup {
   id: string;
   title: string;

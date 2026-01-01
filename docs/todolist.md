@@ -77,13 +77,27 @@
 - [x] 6.7 整合 `SettingsModal.tsx`：實作 JSON 匯出/匯入 UI [已完成]
 - [x] 6.8 整合 `SettingsModal.tsx`：實作重複分頁偵測與一鍵清除 UI [已完成]
 
-### 階段 7：測試與發布準備 (Testing & Release)
+### 階段 7：上層分類與組織設定 (Organization & Category)
 
-- [ ] 7.1 本地開發環境整合測試 [待處理]
-- [ ] 7.2 Chrome Extension 打包測試 (側載安裝) [待處理]
-- [ ] 7.3 跨裝置同步功能驗證 [待處理]
-- [ ] 7.4 效能與安全性檢查 [待處理]
-- [ ] 7.5 準備 Chrome Web Store 上架素材 [待處理]
+- [x] 7.1 UI: 最左側分類欄元件 (CategoryBar) [已完成]
+- [x] 7.2 UI: 新增分類對話框 (選擇顏色、命名) [已完成]
+- [x] 7.3 UI: 分類設定介面 (Settings，類似 Organization Settings) [已完成]
+- [ ] 7.4 Backend: Category 資料模型定義 (types.ts - 已定義，待實作 service) [待處理]
+- [ ] 7.5 Backend: categoryService.ts 建立 (CRUD 操作) [待處理]
+- [ ] 7.6 Backend: Category 與 Collection 的關聯邏輯 (CollectionGroup 需增加 categoryId) [待處理]
+- [ ] 7.7 Backend: Supabase categories 資料表設計與建立 [待處理]
+- [ ] 7.8 Backend: 分類顏色儲存與讀取 [待處理]
+- [ ] 7.9 整合: 分類切換時過濾顯示對應的 Collections [待處理]
+- [ ] 7.10 整合: 分類設定的編輯、刪除、匯出功能 [待處理]
+- [ ] 7.11 整合: App.tsx 中的臨時 mock categories 改為從 categoryService 讀取 [待處理]
+
+### 階段 8：測試與發布準備 (Testing & Release)
+
+- [ ] 8.1 本地開發環境整合測試 [待處理]
+- [ ] 8.2 Chrome Extension 打包測試 (側載安裝) [待處理]
+- [ ] 8.3 跨裝置同步功能驗證 [待處理]
+- [ ] 8.4 效能與安全性檢查 [待處理]
+- [ ] 8.5 準備 Chrome Web Store 上架素材 [待處理]
 
 ---
 
@@ -91,6 +105,8 @@
 
 | 日期 | 變更內容 | 狀態 |
 |-----|---------|:----:|
+| 2026-01-01 | 完成階段 7 UI 部分：CategoryBar、AddCategoryModal、CategorySettingsModal | 已完成 |
+| 2026-01-01 | 調整佈局：新增最左側分類欄，Account 移至分類欄底部 | 已完成 |
 | 2025-12-31 | 完成階段 6：介面整合與服務層接軌（App, Main, Sidebar, Settings） | 已完成 |
 | 2025-12-31 | 新增階段 6、7：介面整合與測試發布任務清單 | 已完成 |
 | 2025-12-31 | 透過 MCP 在 Supabase 執行資料表建立 SQL | 已完成 |

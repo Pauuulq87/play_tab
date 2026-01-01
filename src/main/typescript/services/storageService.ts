@@ -165,21 +165,8 @@ export const initializeData = async (): Promise<void> => {
     return;
   }
   
-  // 預設收藏集（空的起始結構）
-  const defaultCollections: CollectionGroup[] = [
-    {
-      id: 'welcome',
-      title: '歡迎使用 Play Tab',
-      items: [
-        {
-          id: 'welcome-item',
-          title: '開始使用 - 將右側開啟的分頁拖曳到這裡儲存',
-          url: '',
-        }
-      ],
-      isOpen: true,
-    }
-  ];
+  // 預設收藏集（空的起始結構，由使用者自行新增）
+  const defaultCollections: CollectionGroup[] = [];
   
   // 預設使用者設定
   const defaultSettings: UserSettings = {

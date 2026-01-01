@@ -9,7 +9,6 @@ interface MainContentProps {
   onRefresh: () => void;
   isDarkMode: boolean;
   toggleTheme: () => void;
-  onOpenSettings: () => void;
   autoCloseTab?: boolean;
 }
 
@@ -18,7 +17,6 @@ const MainContent: React.FC<MainContentProps> = ({
   onRefresh, 
   isDarkMode, 
   toggleTheme,
-  onOpenSettings,
   autoCloseTab = false
 }) => {
   const totalItems = collections.reduce((acc, curr) => acc + curr.items.length, 0);
@@ -122,12 +120,6 @@ const MainContent: React.FC<MainContentProps> = ({
                 深色模式
               </>
             )}
-          </button>
-          <button 
-            onClick={onOpenSettings}
-            className="text-steel dark:text-gray-400 hover:text-brand-hover transition-colors"
-          >
-            <Settings size={18} />
           </button>
         </div>
       </header>
