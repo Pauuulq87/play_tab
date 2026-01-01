@@ -149,7 +149,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         {/* Header */}
         <div className="flex justify-between items-start p-6 pb-2">
             <h2 className="text-xl font-sans text-white font-normal tracking-wide">
-              {isAuth ? 'Account' : 'Sign In'}
+              {isAuth ? '個人帳戶' : '登入'}
             </h2>
             <button onClick={onClose} className="text-gray-400 hover:text-brand-hover transition-colors">
                 <X size={24} strokeWidth={1.5} />
@@ -162,14 +162,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             {isAuth ? (
               <div className="space-y-1 relative">
                   <div className="flex justify-between items-center">
-                      <span className="text-white font-normal text-base">{user?.email?.split('@')[0] || 'User'}</span>
-                      <button onClick={handleLogout} className="text-sm text-gray-300 hover:text-brand-hover transition-colors">Log out</button>
+                      <span className="text-white font-normal text-base">{user?.email?.split('@')[0] || '使用者'}</span>
+                      <button onClick={handleLogout} className="text-sm text-gray-300 hover:text-brand-hover transition-colors">登出</button>
                   </div>
                   <div className="text-sm text-gray-400 pb-2">{user?.email}</div>
                   <div className="flex flex-col gap-1.5 text-sm text-gray-300">
                       <button onClick={handleSync} disabled={isSyncing} className="flex items-center gap-2 text-left hover:text-brand-hover w-fit transition-colors">
                         <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
-                        Cloud Sync
+                        雲端同步 (Cloud Sync)
                       </button>
                   </div>
                   <div className="border-b border-gray-600 mt-6"></div>
@@ -178,20 +178,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
               <form onSubmit={handleLogin} className="space-y-4">
                 <input 
                   type="email" 
-                  placeholder="Email" 
+                  placeholder="電子郵件" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-[#2D3042] border border-gray-600 p-2 text-sm focus:outline-none focus:border-brand-hover"
                 />
                 <input 
                   type="password" 
-                  placeholder="Password" 
+                  placeholder="密碼" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-[#2D3042] border border-gray-600 p-2 text-sm focus:outline-none focus:border-brand-hover"
                 />
                 <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 text-sm transition-colors flex items-center justify-center gap-2">
-                  <LogIn size={16} /> Sign In
+                  <LogIn size={16} /> 登入
                 </button>
                 <div className="border-b border-gray-600 mt-6"></div>
               </form>
@@ -199,39 +199,39 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* General Preferences */}
             <div>
-                <h3 className="text-xs font-normal text-gray-400 uppercase tracking-widest mb-5">General Preferences</h3>
+                <h3 className="text-xs font-normal text-gray-400 uppercase tracking-widest mb-5">一般偏好設定</h3>
                 <div className="space-y-4">
                     <ToggleRow 
-                      label="Open cards on the same tab" 
+                      label="在同一分頁開啟卡片" 
                       checked={settings?.openCardsOnSameTab}
                       onClick={() => handleToggle('openCardsOnSameTab')}
                     />
                     <ToggleRow 
-                        label="Dark Theme" 
+                        label="深色模式 (Dark Theme)" 
                         checked={settings?.isDarkMode} 
                         onClick={() => handleToggle('isDarkMode')}
                     />
                     <ToggleRow 
-                      label="Automatically close tabs" 
+                      label="自動關閉分頁" 
                       checked={settings?.autoCloseTab}
                       onClick={() => handleToggle('autoCloseTab')}
                       info 
                     />
                     <ToggleRow 
-                      label="Remove duplicate tabs" 
+                      label="移除重複分頁" 
                       checked={settings?.removeDuplicateTabs}
                       onClick={() => handleToggle('removeDuplicateTabs')}
                       icon={<Rocket size={14} className="text-blue-400 ml-1.5 inline"/>} 
                       info 
                     />
                     <ToggleRow 
-                      label="Enable Shortcuts" 
+                      label="啟用快捷鍵" 
                       checked={settings?.enableShortcuts}
                       onClick={() => handleToggle('enableShortcuts')}
                       info 
                     />
                     <ToggleRow 
-                      label="Enable Tab Groups" 
+                      label="啟用分頁群組 (Tab Groups)" 
                       checked={settings?.enableTabGroups}
                       onClick={() => handleToggle('enableTabGroups')}
                       info 
@@ -249,23 +249,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* Footer Links */}
             <div className="grid grid-cols-3 gap-8 pt-4 border-t border-gray-600">
                 <div className="space-y-3">
-                    <h4 className="text-xs font-normal text-white uppercase tracking-wider">About</h4>
-                    <div className="text-sm text-gray-400 cursor-pointer hover:text-brand-hover transition-colors">Keyboard shortcuts</div>
+                    <h4 className="text-xs font-normal text-white uppercase tracking-wider">關於</h4>
+                    <div className="text-sm text-gray-400 cursor-pointer hover:text-brand-hover transition-colors">快捷鍵說明</div>
                     <button onClick={handleCleanupDuplicates} className="text-sm text-gray-400 cursor-pointer hover:text-brand-hover transition-colors flex items-center gap-1">
-                      <Trash2 size={12} /> Clean Duplicates
+                      <Trash2 size={12} /> 清理重複分頁
                     </button>
                 </div>
                 <div className="space-y-3">
-                    <h4 className="text-xs font-normal text-white uppercase tracking-wider">Help</h4>
-                    <div className="text-sm text-gray-400 cursor-pointer hover:text-brand-hover transition-colors">FAQ</div>
+                    <h4 className="text-xs font-normal text-white uppercase tracking-wider">幫助</h4>
+                    <div className="text-sm text-gray-400 cursor-pointer hover:text-brand-hover transition-colors">常見問題 (FAQ)</div>
                 </div>
                  <div className="space-y-3">
-                    <h4 className="text-xs font-normal text-white uppercase tracking-wider">Data</h4>
+                    <h4 className="text-xs font-normal text-white uppercase tracking-wider">數據</h4>
                     <button onClick={handleExport} className="text-sm text-gray-400 cursor-pointer hover:text-brand-hover transition-colors flex items-center gap-1">
-                      <Download size={12} /> Export JSON
+                      <Download size={12} /> 匯出 JSON
                     </button>
                     <label className="text-sm text-gray-400 cursor-pointer hover:text-brand-hover transition-colors flex items-center gap-1">
-                      <Upload size={12} /> Import JSON
+                      <Upload size={12} /> 匯入 JSON
                       <input type="file" accept=".json" onChange={handleImport} className="hidden" />
                     </label>
                 </div>
@@ -298,27 +298,3 @@ const ToggleRow: React.FC<ToggleRowProps> = ({ label, checked = false, info = fa
 );
 
 export default SettingsModal;
-
-interface ToggleRowProps {
-    label: string;
-    checked?: boolean;
-    info?: boolean;
-    icon?: React.ReactNode;
-    onClick?: () => void;
-}
-
-const ToggleRow: React.FC<ToggleRowProps> = ({ label, checked = false, info = false, icon = null, onClick }) => (
-    <div className="flex items-center gap-3 group cursor-pointer" onClick={onClick}>
-        <div className={`w-9 h-5 rounded-full relative transition-colors duration-200 ease-in-out ${checked ? 'bg-blue-500' : 'bg-gray-600 group-hover:bg-brand-hover'}`}>
-            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-transform duration-200 shadow-sm ${checked ? 'translate-x-5' : 'translate-x-1'}`}></div>
-        </div>
-        <div className="flex items-center text-sm text-gray-300 group-hover:text-brand-hover transition-colors select-none">
-            {label}
-            {info && <Info size={14} className="ml-2 text-gray-500 group-hover:text-brand-hover" />}
-            {icon}
-        </div>
-    </div>
-);
-
-export default SettingsModal;
-

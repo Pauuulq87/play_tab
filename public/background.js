@@ -4,6 +4,11 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('Play Tab Extension installed');
 });
 
+// 點擊擴充功能圖示時，在新分頁開啟
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
+});
+
 // Listen for tab changes
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete') {
@@ -20,4 +25,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Keep the message channel open for async response
   }
 });
-

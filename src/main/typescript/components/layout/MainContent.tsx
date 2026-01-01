@@ -1,7 +1,8 @@
 import React from 'react';
-import { Settings, GripVertical, Tag, LayoutGrid, Plus, ChevronDown, MonitorPlay, FileText, Sun, Moon } from 'lucide-react';
+import { Settings, GripVertical, Tag, LayoutGrid, Plus, ChevronDown, ChevronRight, MonitorPlay, FileText, Sun, Moon, ExternalLink, Trash2 } from 'lucide-react';
 import { CollectionGroup, TabItem } from '@/models/types';
-import { addItemToCollection } from '@/services/storageService';
+import { addItemToCollection, createCollection, toggleCollectionOpen, removeItemFromCollection } from '@/services/storageService';
+import { closeTab } from '@/services/tabService';
 
 interface MainContentProps {
   collections: CollectionGroup[];
@@ -9,6 +10,7 @@ interface MainContentProps {
   isDarkMode: boolean;
   toggleTheme: () => void;
   onOpenSettings: () => void;
+  autoCloseTab?: boolean;
 }
 
 const MainContent: React.FC<MainContentProps> = ({ 
@@ -16,7 +18,8 @@ const MainContent: React.FC<MainContentProps> = ({
   onRefresh, 
   isDarkMode, 
   toggleTheme,
-  onOpenSettings 
+  onOpenSettings,
+  autoCloseTab = false
 }) => {
   const totalItems = collections.reduce((acc, curr) => acc + curr.items.length, 0);
 
@@ -35,9 +38,63 @@ const MainContent: React.FC<MainContentProps> = ({
       // 產生新的 UUID 避免衝突（如果是從開啟分頁拖過來的話）
       const newItem = { ...tab, id: crypto.randomUUID() };
       await addItemToCollection(collectionId, newItem);
+      
+      // 如果設定中啟用了「自動關閉分頁」，則關閉該分頁
+      if (autoCloseTab && tab.id) {
+        try {
+          await closeTab(parseInt(tab.id));
+        } catch (error) {
+          console.warn('無法關閉分頁（可能在開發環境）');
+        }
+      }
+      
       onRefresh();
     } catch (error) {
       console.error('Failed to add item via drop:', error);
+    }
+  };
+
+  const handleAddCollection = async () => {
+    const title = prompt('請輸入新收藏集的名稱：');
+    if (!title) return;
+
+    try {
+      const newCollection: CollectionGroup = {
+        id: crypto.randomUUID(),
+        title: title,
+        items: [],
+        isOpen: true,
+      };
+      await createCollection(newCollection);
+      onRefresh();
+    } catch (error) {
+      console.error('Failed to create collection:', error);
+    }
+  };
+
+  const handleToggleCollection = async (collectionId: string) => {
+    try {
+      await toggleCollectionOpen(collectionId);
+      onRefresh();
+    } catch (error) {
+      console.error('Failed to toggle collection:', error);
+    }
+  };
+
+  const handleCardClick = (url?: string) => {
+    if (!url) return;
+    window.open(url, '_blank');
+  };
+
+  const handleDeleteItem = async (e: React.MouseEvent, collectionId: string, itemId: string) => {
+    e.stopPropagation();
+    if (!confirm('確定要刪除此項目嗎？')) return;
+    
+    try {
+      await removeItemFromCollection(collectionId, itemId);
+      onRefresh();
+    } catch (error) {
+      console.error('Failed to delete item:', error);
     }
   };
 
@@ -78,27 +135,48 @@ const MainContent: React.FC<MainContentProps> = ({
       {/* Toolbar */}
       <div className="h-12 border-b border-steel dark:border-gray-700 flex items-center justify-between px-6 bg-paper/50 dark:bg-dark-bg/95 backdrop-blur-sm shrink-0 transition-colors duration-200">
         <div className="flex items-center gap-6">
-          <button className="flex items-center gap-2 text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover transition-colors">
+          <button className="flex items-center gap-2 text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover transition-colors opacity-50 cursor-not-allowed" title="功能開發中">
             <GripVertical size={14} />
             <span>拖曳排序</span>
             <ChevronDown size={12} />
           </button>
-          <button className="flex items-center gap-2 text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover transition-colors">
+          <button className="flex items-center gap-2 text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover transition-colors opacity-50 cursor-not-allowed" title="功能開發中">
             <Tag size={14} />
             <span>標籤篩選</span>
             <ChevronDown size={12} />
           </button>
-          <button className="flex items-center gap-2 text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover transition-colors">
+          <button className="flex items-center gap-2 text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover transition-colors opacity-50 cursor-not-allowed" title="功能開發中">
             <LayoutGrid size={14} />
             <span>檢視</span>
             <ChevronDown size={12} />
           </button>
           <div className="w-px h-4 bg-steel/30 dark:bg-gray-700 mx-2"></div>
-          <button className="text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover uppercase tracking-wider transition-colors">展開</button>
-          <button className="text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover uppercase tracking-wider transition-colors">折疊</button>
+          <button 
+            onClick={() => {
+              collections.forEach(c => {
+                if (!c.isOpen) handleToggleCollection(c.id);
+              });
+            }}
+            className="text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover uppercase tracking-wider transition-colors"
+          >
+            展開全部
+          </button>
+          <button 
+            onClick={() => {
+              collections.forEach(c => {
+                if (c.isOpen) handleToggleCollection(c.id);
+              });
+            }}
+            className="text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover uppercase tracking-wider transition-colors"
+          >
+            折疊全部
+          </button>
         </div>
         
-        <button className="flex items-center gap-2 px-3 py-1.5 border border-steel dark:border-gray-500 bg-steel dark:bg-gray-700 text-white text-xs font-normal uppercase hover:bg-brand-hover hover:border-brand-hover transition-colors">
+        <button 
+          onClick={handleAddCollection}
+          className="flex items-center gap-2 px-3 py-1.5 border border-steel dark:border-gray-500 bg-steel dark:bg-gray-700 text-white text-xs font-normal uppercase hover:bg-brand-hover hover:border-brand-hover transition-colors"
+        >
           <Plus size={14} strokeWidth={3} />
           新增收藏
         </button>
@@ -109,7 +187,12 @@ const MainContent: React.FC<MainContentProps> = ({
         {collections.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-steel dark:text-gray-500 gap-4">
             <p className="text-lg">尚無收藏集</p>
-            <button className="text-xs border border-steel px-4 py-2 hover:bg-brand-hover hover:border-brand-hover hover:text-white transition-all">點此建立第一個收藏</button>
+            <button 
+              onClick={handleAddCollection}
+              className="text-xs border border-steel px-4 py-2 hover:bg-brand-hover hover:border-brand-hover hover:text-white transition-all"
+            >
+              點此建立第一個收藏
+            </button>
           </div>
         ) : (
           collections.map((collection) => (
@@ -120,52 +203,75 @@ const MainContent: React.FC<MainContentProps> = ({
               onDrop={(e) => handleDrop(e, collection.id)}
             >
               {/* Collection Header */}
-              <div className="flex items-center gap-2 mb-4 cursor-pointer hover:text-brand-hover transition-colors group">
+              <div 
+                onClick={() => handleToggleCollection(collection.id)}
+                className="flex items-center gap-2 mb-4 cursor-pointer hover:text-brand-hover transition-colors group"
+              >
+                {collection.isOpen ? (
+                  <ChevronDown size={20} className="text-brand-hover" />
+                ) : (
+                  <ChevronRight size={20} className="text-steel dark:text-gray-500 group-hover:text-brand-hover" />
+                )}
                 <h2 className="font-sans text-xl font-normal text-charcoal dark:text-gray-100 group-hover:text-brand-hover transition-colors">{collection.title}</h2>
-                <ChevronDown size={20} className={collection.isOpen ? 'text-brand-hover' : 'text-steel dark:text-gray-500'} />
+                <span className="text-xs text-steel dark:text-gray-500">({collection.items.length})</span>
               </div>
 
               {/* Collection Items Grid */}
-              <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 ${!collection.isOpen && 'hidden'}`}>
-                {collection.items.length > 0 ? (
-                  collection.items.map((item) => (
-                    <div 
-                      key={item.id} 
-                      className="
-                        bg-white dark:bg-[#1E1E1E] border border-steel dark:border-gray-700 p-4 h-32 flex flex-col justify-between 
-                        hover:shadow-[4px_4px_0px_0px_rgba(230,182,68,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(230,182,68,0.5)] 
-                        hover:border-brand-hover transition-all cursor-pointer relative group/item
-                      "
-                    >
-                      <div className="flex items-start gap-3">
-                        {/* Dynamic Icon based on content */}
-                        <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-paper dark:bg-gray-800 border border-steel dark:border-gray-600 text-steel dark:text-gray-400 group-hover/item:border-brand-hover group-hover/item:text-brand-hover transition-colors">
-                          {item.favicon ? (
-                            <img src={item.favicon} alt="" className="w-4 h-4" />
-                          ) : item.url?.includes('youtube') ? (
-                            <MonitorPlay size={16} />
-                          ) : (
-                            <FileText size={16} />
-                          )}
+              {collection.isOpen && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {collection.items.length > 0 ? (
+                    collection.items.map((item) => (
+                      <div 
+                        key={item.id} 
+                        onClick={() => handleCardClick(item.url)}
+                        className="
+                          bg-white dark:bg-[#1E1E1E] border border-steel dark:border-gray-700 p-4 h-32 flex flex-col justify-between 
+                          hover:shadow-[4px_4px_0px_0px_rgba(230,182,68,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(230,182,68,0.5)] 
+                          hover:border-brand-hover transition-all cursor-pointer relative group/item
+                        "
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Dynamic Icon based on content */}
+                          <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-paper dark:bg-gray-800 border border-steel dark:border-gray-600 text-steel dark:text-gray-400 group-hover/item:border-brand-hover group-hover/item:text-brand-hover transition-colors">
+                            {item.favicon ? (
+                              <img src={item.favicon} alt="" className="w-4 h-4" />
+                            ) : item.url?.includes('youtube') ? (
+                              <MonitorPlay size={16} />
+                            ) : (
+                              <FileText size={16} />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-sans text-sm font-normal text-charcoal dark:text-gray-200 line-clamp-2 leading-tight mb-1 group-hover/item:text-brand-hover transition-colors">
+                              {item.title}
+                            </h3>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-sans text-sm font-normal text-charcoal dark:text-gray-200 line-clamp-2 leading-tight mb-1 group-hover/item:text-brand-hover transition-colors">
-                            {item.title}
-                          </h3>
+                        
+                        <div className="mt-2 pt-2 border-t border-dashed border-steel/30 dark:border-gray-700 flex items-center justify-between">
+                           <p className="text-[10px] font-sans font-thin text-steel dark:text-gray-500 truncate flex-1 group-hover/item:text-brand-hover transition-colors">{item.url}</p>
+                           {/* Action buttons on hover */}
+                           <div className="hidden group-hover/item:flex items-center gap-2 ml-2">
+                             {item.url && (
+                               <ExternalLink size={12} className="text-steel hover:text-brand-hover" title="開啟連結" />
+                             )}
+                             <Trash2 
+                               size={12} 
+                               className="text-steel hover:text-red-500" 
+                               title="刪除"
+                               onClick={(e) => handleDeleteItem(e, collection.id, item.id)}
+                             />
+                           </div>
                         </div>
                       </div>
-                      
-                      <div className="mt-2 pt-2 border-t border-dashed border-steel/30 dark:border-gray-700">
-                         <p className="text-[10px] font-sans font-thin text-steel dark:text-gray-500 truncate group-hover/item:text-brand-hover transition-colors">{item.url}</p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full py-8 border border-dashed border-steel/40 dark:border-gray-700 flex items-center justify-center text-steel dark:text-gray-600 text-sm font-sans italic bg-paper dark:bg-transparent">
+                      此收藏集尚無項目（可將分頁拖曳至此）
                     </div>
-                  ))
-                ) : (
-                  <div className="col-span-full py-8 border border-dashed border-steel/40 dark:border-gray-700 flex items-center justify-center text-steel dark:text-gray-600 text-sm font-sans italic bg-paper dark:bg-transparent">
-                    此收藏集尚無項目（可將分頁拖曳至此）
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
               {/* Divider between collections */}
               <div className="h-px w-full bg-steel/20 dark:bg-gray-800 mt-8"></div>
             </div>
@@ -177,6 +283,3 @@ const MainContent: React.FC<MainContentProps> = ({
 };
 
 export default MainContent;
-
-export default MainContent;
-

@@ -5,6 +5,12 @@ export interface TabItem {
   title: string;
   url?: string;
   favicon?: string;
+  windowId?: number;
+}
+
+export interface WindowGroup {
+  windowId: number;
+  tabs: TabItem[];
 }
 
 export interface CollectionGroup {

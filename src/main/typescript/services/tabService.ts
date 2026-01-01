@@ -1,4 +1,4 @@
-import { TabItem } from '@/models/types';
+import { TabItem, WindowGroup } from '@/models/types';
 
 const ensureChromeTabs = (): typeof chrome.tabs => {
   if (typeof chrome === 'undefined' || !chrome.tabs) {
@@ -7,25 +7,76 @@ const ensureChromeTabs = (): typeof chrome.tabs => {
   return chrome.tabs;
 };
 
-const mapToTabItem = (tab: chrome.tabs.Tab): TabItem => ({
-  id: tab.id?.toString() ?? '',
-  title: tab.title ?? '',
-  url: tab.url,
-  favicon: tab.favIconUrl,
+const mapToTabItem = (tab: any): TabItem => ({
+  id: tab.id?.toString() ?? Math.random().toString(36).substr(2, 9),
+  title: tab.title ?? 'Unknown Title',
+  url: tab.url ?? '',
+  favicon: tab.favIconUrl ?? tab.favicon ?? '',
+  windowId: tab.windowId,
 });
+
+// ==================== 模擬數據 (僅開發環境使用) ====================
+
+const MOCK_TABS: TabItem[] = [
+  { id: 'mock-1', title: 'Google', url: 'https://google.com', favicon: 'https://www.google.com/favicon.ico' },
+  { id: 'mock-2', title: 'GitHub', url: 'https://github.com', favicon: 'https://github.githubassets.com/favicons/favicon.svg' },
+  { id: 'mock-3', title: 'YouTube', url: 'https://youtube.com', favicon: 'https://www.youtube.com/favicon.ico' },
+  { id: 'mock-4', title: 'Tailwind CSS', url: 'https://tailwindcss.com', favicon: 'https://tailwindcss.com/favicon-32x32.png' },
+  { id: 'mock-5', title: 'React Documentation', url: 'https://react.dev', favicon: 'https://react.dev/favicon.ico' },
+];
 
 // ==================== 分頁查詢 ====================
 
 export const queryCurrentWindowTabs = async (): Promise<TabItem[]> => {
-  const tabsApi = ensureChromeTabs();
-  const tabs = await tabsApi.query({ currentWindow: true });
-  return tabs.map(mapToTabItem);
+  try {
+    const tabsApi = ensureChromeTabs();
+    const tabs = await tabsApi.query({ currentWindow: true });
+    return tabs.map(mapToTabItem);
+  } catch (error) {
+    console.warn('Using mock tabs because chrome.tabs is unavailable');
+    return MOCK_TABS;
+  }
 };
 
 export const queryAllTabs = async (): Promise<TabItem[]> => {
-  const tabsApi = ensureChromeTabs();
-  const tabs = await tabsApi.query({});
-  return tabs.map(mapToTabItem);
+  try {
+    const tabsApi = ensureChromeTabs();
+    const tabs = await tabsApi.query({});
+    return tabs.map(mapToTabItem);
+  } catch (error) {
+    return MOCK_TABS;
+  }
+};
+
+export const queryAllWindowsWithTabs = async (): Promise<WindowGroup[]> => {
+  try {
+    const tabsApi = ensureChromeTabs();
+    const allTabs = await tabsApi.query({});
+    
+    // 按 windowId 分組
+    const windowMap = new Map<number, TabItem[]>();
+    
+    allTabs.forEach(tab => {
+      if (tab.windowId !== undefined) {
+        const tabItem = mapToTabItem(tab);
+        if (!windowMap.has(tab.windowId)) {
+          windowMap.set(tab.windowId, []);
+        }
+        windowMap.get(tab.windowId)!.push(tabItem);
+      }
+    });
+    
+    // 轉換為 WindowGroup 陣列並排序（當前視窗優先）
+    const windows: WindowGroup[] = [];
+    for (const [windowId, tabs] of windowMap.entries()) {
+      windows.push({ windowId, tabs });
+    }
+    
+    return windows;
+  } catch (error) {
+    console.warn('Using mock tabs because chrome.tabs is unavailable');
+    return [{ windowId: 1, tabs: MOCK_TABS }];
+  }
 };
 
 export const getCurrentTab = async (): Promise<TabItem | undefined> => {

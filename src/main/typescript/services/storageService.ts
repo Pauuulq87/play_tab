@@ -11,28 +11,59 @@ const COLLECTIONS_KEY = 'collections';
 const SETTINGS_KEY = 'settings';
 const INITIALIZED_KEY = 'initialized';
 
+// ==================== 開發環境相容性 (使用 localStorage) ====================
+
+const mockStorage = {
+  local: {
+    get: async (key: string | string[]) => {
+      const keys = Array.isArray(key) ? key : [key];
+      const result: any = {};
+      keys.forEach(k => {
+        const val = localStorage.getItem(k);
+        result[k] = val ? JSON.parse(val) : undefined;
+      });
+      return result;
+    },
+    set: async (items: any) => {
+      Object.entries(items).forEach(([k, v]) => {
+        localStorage.setItem(k, JSON.stringify(v));
+      });
+    },
+    clear: async () => {
+      localStorage.clear();
+    }
+  }
+};
+
+const getStorage = () => {
+  if (typeof chrome !== 'undefined' && chrome.storage) {
+    return chrome.storage;
+  }
+  return mockStorage as any;
+};
+
 // ==================== 基礎讀寫 ====================
 
 export const getCollections = async (): Promise<CollectionGroup[]> => {
-  const storageApi = ensureChromeStorage();
+  const storageApi = getStorage();
   const result = await storageApi.local.get(COLLECTIONS_KEY);
   return (result[COLLECTIONS_KEY] as CollectionGroup[]) ?? [];
 };
 
 export const saveCollections = async (collections: CollectionGroup[]): Promise<void> => {
-  const storageApi = ensureChromeStorage();
+  const storageApi = getStorage();
   await storageApi.local.set({ [COLLECTIONS_KEY]: collections });
 };
 
 export const getUserSettings = async (defaults?: UserSettings): Promise<UserSettings | undefined> => {
-  const storageApi = ensureChromeStorage();
+  const storageApi = getStorage();
   const result = await storageApi.local.get(SETTINGS_KEY);
   const stored = result[SETTINGS_KEY] as UserSettings | undefined;
   return stored ?? defaults;
 };
 
 export const saveUserSettings = async (settings: UserSettings): Promise<void> => {
-  const storageApi = ensureChromeStorage();
+  const storageApi = getStorage();
   await storageApi.local.set({ [SETTINGS_KEY]: settings });
 };
 
@@ -65,6 +96,10 @@ export const deleteCollection = async (id: string): Promise<void> => {
   const collections = await getCollections();
   const filtered = collections.filter(c => c.id !== id);
   await saveCollections(filtered);
+};
+
+export const clearAllCollections = async (): Promise<void> => {
+  await saveCollections([]);
 };
 
 // ==================== 書籤項目 CRUD ====================
@@ -118,7 +153,7 @@ export const updateItemInCollection = async (
 // ==================== 資料初始化 ====================
 
 export const isInitialized = async (): Promise<boolean> => {
-  const storageApi = ensureChromeStorage();
+  const storageApi = getStorage();
   const result = await storageApi.local.get(INITIALIZED_KEY);
   return result[INITIALIZED_KEY] === true;
 };
@@ -159,7 +194,19 @@ export const initializeData = async (): Promise<void> => {
   await saveCollections(defaultCollections);
   await saveUserSettings(defaultSettings);
   
-  const storageApi = ensureChromeStorage();
+  const storageApi = getStorage();
   await storageApi.local.set({ [INITIALIZED_KEY]: true });
+};
+
+// ==================== 收藏集展開/收合 ====================
+
+export const toggleCollectionOpen = async (id: string): Promise<void> => {
+  const collections = await getCollections();
+  const index = collections.findIndex(c => c.id === id);
+  
+  if (index === -1) return;
+  
+  collections[index].isOpen = !collections[index].isOpen;
+  await saveCollections(collections);
 };
 
