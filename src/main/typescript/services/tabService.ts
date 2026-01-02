@@ -7,13 +7,24 @@ const ensureChromeTabs = (): typeof chrome.tabs => {
   return chrome.tabs;
 };
 
-const mapToTabItem = (tab: any): TabItem => ({
-  id: tab.id?.toString() ?? Math.random().toString(36).substr(2, 9),
-  title: tab.title ?? 'Unknown Title',
-  url: tab.url ?? '',
-  favicon: tab.favIconUrl ?? tab.favicon ?? '',
-  windowId: tab.windowId,
-});
+const mapToTabItem = (tab: any): TabItem => {
+  // 過濾掉 chrome:// 等無法載入的內部協議
+  const faviconUrl = tab.favIconUrl ?? tab.favicon ?? '';
+  const validFavicon = faviconUrl.startsWith('chrome://') || 
+                       faviconUrl.startsWith('chrome-extension://') ||
+                       faviconUrl.startsWith('edge://') ||
+                       faviconUrl.startsWith('about:')
+    ? ''
+    : faviconUrl;
+
+  return {
+    id: tab.id?.toString() ?? Math.random().toString(36).substr(2, 9),
+    title: tab.title ?? 'Unknown Title',
+    url: tab.url ?? '',
+    favicon: validFavicon,
+    windowId: tab.windowId,
+  };
+};
 
 // ==================== 模擬數據 (僅開發環境使用) ====================
 

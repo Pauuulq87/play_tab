@@ -6,6 +6,8 @@ export interface TabItem {
   url?: string;
   favicon?: string;
   windowId?: number;
+  description?: string;
+  createdAt?: string; // ISO 8601 格式
 }
 
 export interface WindowGroup {

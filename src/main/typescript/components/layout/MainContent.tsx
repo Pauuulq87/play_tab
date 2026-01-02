@@ -1,8 +1,9 @@
 import React from 'react';
-import { Settings, GripVertical, Tag, LayoutGrid, Plus, ChevronDown, ChevronRight, MonitorPlay, FileText, Sun, Moon, ExternalLink, Trash2 } from 'lucide-react';
+import { Settings, GripVertical, Tag, LayoutGrid, Plus, ChevronDown, ChevronRight, MonitorPlay, FileText, Sun, Moon, ExternalLink, Trash2, Edit3, X } from 'lucide-react';
 import { CollectionGroup, TabItem } from '@/models/types';
-import { addItemToCollection, createCollection, toggleCollectionOpen, removeItemFromCollection } from '@/services/storageService';
+import { addItemToCollection, createCollection, toggleCollectionOpen, removeItemFromCollection, updateItemInCollection } from '@/services/storageService';
 import { closeTab } from '@/services/tabService';
+import EditItemModal from '../ui/EditItemModal';
 
 interface MainContentProps {
   collections: CollectionGroup[];
@@ -23,6 +24,8 @@ const MainContent: React.FC<MainContentProps> = ({
   selectedSpaceId,
   selectedSpaceName = '我的收藏 (My Collections)'
 }) => {
+  const [editingItem, setEditingItem] = React.useState<{ item: TabItem; collectionId: string } | null>(null);
+  
   const totalItems = collections.reduce((acc, curr) => acc + curr.items.length, 0);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -38,7 +41,11 @@ const MainContent: React.FC<MainContentProps> = ({
     try {
       const tab = JSON.parse(data) as TabItem;
       // 產生新的 UUID 避免衝突（如果是從開啟分頁拖過來的話）
-      const newItem = { ...tab, id: crypto.randomUUID() };
+      const newItem: TabItem = { 
+        ...tab, 
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString() // 加入當前時間
+      };
       await addItemToCollection(collectionId, newItem);
       
       // 如果設定中啟用了「自動關閉分頁」，則關閉該分頁
@@ -103,6 +110,31 @@ const MainContent: React.FC<MainContentProps> = ({
       onRefresh();
     } catch (error) {
       console.error('Failed to delete item:', error);
+    }
+  };
+
+  const handleEditItem = (e: React.MouseEvent, item: TabItem, collectionId: string) => {
+    e.stopPropagation();
+    setEditingItem({ item, collectionId });
+  };
+
+  const handleSaveItem = async (collectionId: string, itemId: string, updates: { title: string; url: string; description: string }) => {
+    try {
+      await updateItemInCollection(collectionId, itemId, updates);
+      onRefresh();
+    } catch (error) {
+      console.error('Failed to update item:', error);
+      throw error;
+    }
+  };
+
+  const handleDeleteItemFromModal = async (collectionId: string, itemId: string) => {
+    try {
+      await removeItemFromCollection(collectionId, itemId);
+      onRefresh();
+    } catch (error) {
+      console.error('Failed to delete item:', error);
+      throw error;
     }
   };
 
@@ -232,6 +264,15 @@ const MainContent: React.FC<MainContentProps> = ({
                           hover:border-brand-hover transition-all cursor-pointer relative group/item
                         "
                       >
+                        {/* Delete button - top right corner */}
+                        <button
+                          onClick={(e) => handleDeleteItem(e, collection.id, item.id)}
+                          className="absolute top-2 right-2 opacity-0 group-hover/item:opacity-100 transition-opacity p-1 hover:bg-red-500/10 rounded"
+                          title="刪除"
+                        >
+                          <X size={16} className="text-steel dark:text-gray-400 hover:text-red-500" />
+                        </button>
+
                         <div className="flex items-start gap-3">
                           {/* Dynamic Icon based on content */}
                           <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-paper dark:bg-gray-800 border border-steel dark:border-gray-600 text-steel dark:text-gray-400 group-hover/item:border-brand-hover group-hover/item:text-brand-hover transition-colors">
@@ -252,17 +293,15 @@ const MainContent: React.FC<MainContentProps> = ({
                         
                         <div className="mt-2 pt-2 border-t border-dashed border-steel/30 dark:border-gray-700 flex items-center justify-between">
                            <p className="text-[10px] font-sans font-thin text-steel dark:text-gray-500 truncate flex-1 group-hover/item:text-brand-hover transition-colors">{item.url}</p>
-                           {/* Action buttons on hover */}
-                           <div className="hidden group-hover/item:flex items-center gap-2 ml-2">
-                             {item.url && (
-                               <ExternalLink size={12} className="text-steel hover:text-brand-hover" title="開啟連結" />
-                             )}
-                             <Trash2 
-                               size={12} 
-                               className="text-steel hover:text-red-500" 
-                               title="刪除"
-                               onClick={(e) => handleDeleteItem(e, collection.id, item.id)}
-                             />
+                           {/* Edit button on hover */}
+                           <div className="opacity-0 group-hover/item:opacity-100 transition-opacity ml-2">
+                             <button
+                               onClick={(e) => handleEditItem(e, item, collection.id)}
+                               className="p-1 hover:bg-brand-hover/10 rounded transition-colors"
+                               title="編輯"
+                             >
+                               <Edit3 size={14} className="text-steel dark:text-gray-400 hover:text-brand-hover" />
+                             </button>
                            </div>
                         </div>
                       </div>
@@ -280,6 +319,18 @@ const MainContent: React.FC<MainContentProps> = ({
           ))
         )}
       </div>
+      
+      {/* Edit Item Modal */}
+      {editingItem && (
+        <EditItemModal
+          isOpen={true}
+          onClose={() => setEditingItem(null)}
+          item={editingItem.item}
+          collectionId={editingItem.collectionId}
+          onSave={handleSaveItem}
+          onDelete={handleDeleteItemFromModal}
+        />
+      )}
     </main>
   );
 };
