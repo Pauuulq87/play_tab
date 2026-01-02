@@ -135,7 +135,7 @@ const MainContent: React.FC<MainContentProps> = ({
       </header>
 
       {/* Toolbar */}
-      <div className="h-12 border-b border-steel dark:border-gray-700 flex items-center justify-between px-6 bg-paper/50 dark:bg-dark-bg/95 backdrop-blur-sm shrink-0 transition-colors duration-200">
+      <div className="h-16 border-b border-steel dark:border-gray-700 flex items-center justify-between px-6 bg-paper/50 dark:bg-dark-bg/95 backdrop-blur-sm shrink-0 transition-colors duration-200">
         <div className="flex items-center gap-6">
           <button className="flex items-center gap-2 text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover transition-colors opacity-50 cursor-not-allowed" title="功能開發中">
             <GripVertical size={14} />
@@ -180,7 +180,7 @@ const MainContent: React.FC<MainContentProps> = ({
           className="flex items-center gap-2 px-3 py-1.5 border border-steel dark:border-gray-500 bg-steel dark:bg-gray-700 text-white text-xs font-normal uppercase hover:bg-brand-hover hover:border-brand-hover transition-colors"
         >
           <Plus size={14} strokeWidth={3} />
-          新增收藏
+          新增分項區塊
         </button>
       </div>
 

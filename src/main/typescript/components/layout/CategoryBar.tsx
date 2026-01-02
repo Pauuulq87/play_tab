@@ -19,6 +19,9 @@ const CategoryBar: React.FC<CategoryBarProps> = ({
 }) => {
   return (
     <div className="w-16 flex-shrink-0 flex flex-col border-r border-steel dark:border-gray-700 h-screen bg-charcoal dark:bg-dark-surface text-paper dark:text-gray-300">
+      {/* Top Spacer - 對齊其他區塊的 header */}
+      <div className="h-16 border-b border-steel dark:border-gray-700 shrink-0"></div>
+      
       {/* Categories List */}
       <div className="flex-1 overflow-y-auto no-scrollbar py-4 space-y-3">
         {categories.map((category) => (
@@ -48,10 +51,10 @@ const CategoryBar: React.FC<CategoryBarProps> = ({
       </div>
 
       {/* Bottom Actions */}
-      <div className="border-t border-steel dark:border-gray-700 py-3">
+      <div className="h-16 border-t border-steel dark:border-gray-700 flex items-center justify-center shrink-0">
         <div
           onClick={onOpenSettings}
-          className="mx-auto w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:bg-steel/20 dark:hover:bg-white/10 transition-all text-steel dark:text-gray-400 hover:text-brand-hover"
+          className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer hover:bg-steel/20 dark:hover:bg-white/10 transition-all text-steel dark:text-gray-400 hover:text-brand-hover"
           title="組織設定"
         >
           <Settings size={18} />

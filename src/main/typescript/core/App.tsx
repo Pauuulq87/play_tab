@@ -8,7 +8,7 @@ import AddCategoryModal from '../components/ui/AddCategoryModal';
 import CategorySettingsModal from '../components/ui/CategorySettingsModal';
 import SpaceSettingsModal from '../components/ui/SpaceSettingsModal';
 import { CollectionGroup, UserSettings, Category, Space } from '@/models/types';
-import { getCollections, getUserSettings, initializeData, saveUserSettings, initializeMockCollections } from '@/services/storageService';
+import { getCollections, getUserSettings, initializeData, saveUserSettings, initializeMockCollections, saveLastSelected, getLastSelected } from '@/services/storageService';
 import { getSpaces, initializeMockSpaces, updateSpace, deleteSpace } from '@/services/spaceService';
 
 const App: React.FC = () => {
@@ -38,10 +38,11 @@ const App: React.FC = () => {
       await initializeMockSpaces(); // 初始化 Spaces 假資料
       await initializeMockCollections(); // 初始化 Collections 假資料
       
-      const [storedCollections, storedSettings, storedSpaces] = await Promise.all([
+      const [storedCollections, storedSettings, storedSpaces, lastSelected] = await Promise.all([
         getCollections(),
         getUserSettings(),
-        getSpaces()
+        getSpaces(),
+        getLastSelected()
       ]);
       
       setCollections(storedCollections);
@@ -49,6 +50,30 @@ const App: React.FC = () => {
       
       if (storedSettings) {
         setSettings(storedSettings);
+      }
+      
+      // 恢復上次選擇的 Category 和 Space
+      if (lastSelected) {
+        if (lastSelected.categoryId && categories.some(c => c.id === lastSelected.categoryId)) {
+          setSelectedCategoryId(lastSelected.categoryId);
+        }
+        if (lastSelected.spaceId && storedSpaces.some(s => s.id === lastSelected.spaceId)) {
+          setSelectedSpaceId(lastSelected.spaceId);
+        }
+      } else {
+        // 首次使用：自動選中第一個 Category 的第一個 Space
+        const firstCategory = categories[0];
+        if (firstCategory) {
+          setSelectedCategoryId(firstCategory.id);
+          const firstSpace = storedSpaces.find(s => s.categoryId === firstCategory.id);
+          if (firstSpace) {
+            setSelectedSpaceId(firstSpace.id);
+            await saveLastSelected({
+              categoryId: firstCategory.id,
+              spaceId: firstSpace.id
+            });
+          }
+        }
       }
       
       // TODO: 待實作 - 從 categoryService 載入分類資料
@@ -65,6 +90,16 @@ const App: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  // 當 Category 或 Space 改變時，保存選擇
+  useEffect(() => {
+    if (!isLoading && selectedCategoryId) {
+      saveLastSelected({
+        categoryId: selectedCategoryId,
+        spaceId: selectedSpaceId
+      });
+    }
+  }, [selectedCategoryId, selectedSpaceId, isLoading]);
 
   // Apply dark class to html element based on settings or state
   useEffect(() => {

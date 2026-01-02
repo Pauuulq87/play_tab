@@ -123,25 +123,23 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ collections, onRefresh, aut
   return (
     <aside className="w-80 flex-shrink-0 flex flex-col border-l border-steel dark:border-gray-700 h-screen bg-charcoal dark:bg-dark-surface text-paper dark:text-gray-300 transition-colors duration-200">
       {/* Header */}
-      <div className="h-16 border-b border-steel/50 dark:border-gray-700 flex items-center justify-between px-4 shrink-0 bg-charcoal dark:bg-dark-surface">
+      <div className="h-16 border-b border-steel dark:border-gray-700 flex items-center justify-between px-4 shrink-0 bg-charcoal dark:bg-dark-surface">
         <Sidebar size={18} className="text-steel-light dark:text-gray-500 hover:text-brand-hover cursor-pointer transition-colors" title="切換側欄" />
         <span className="text-xs font-normal tracking-[0.2em] text-white dark:text-gray-300 uppercase">開啟的分頁</span>
       </div>
 
       {/* Window Selector / Info */}
-      <div className="p-4 border-b border-steel/30 dark:border-gray-700 bg-charcoal dark:bg-dark-surface">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="font-sans text-sm font-normal text-white">{windows.length} 個視窗</span>
-          </div>
-          <div className="flex items-center gap-3 text-steel-light">
-            <Download 
-              size={14} 
-              className="hover:text-brand-hover cursor-pointer transition-colors"
-              onClick={loadTabs}
-              title="重新整理分頁列表"
-            />
-          </div>
+      <div className="h-16 px-4 border-b border-steel dark:border-gray-700 bg-charcoal dark:bg-dark-surface flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="font-sans text-sm font-normal text-white">{windows.length} 個視窗</span>
+        </div>
+        <div className="flex items-center gap-3 text-steel-light">
+          <Download 
+            size={14} 
+            className="hover:text-brand-hover cursor-pointer transition-colors"
+            onClick={loadTabs}
+            title="重新整理分頁列表"
+          />
         </div>
       </div>
 

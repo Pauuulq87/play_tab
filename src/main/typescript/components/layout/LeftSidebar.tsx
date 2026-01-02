@@ -52,12 +52,9 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   return (
     <aside className="w-64 flex-shrink-0 flex flex-col border-r border-steel dark:border-gray-700 h-screen bg-paper dark:bg-dark-surface text-charcoal dark:text-gray-200 select-none transition-colors duration-200">
       {/* User Header */}
-      <div className="p-4 border-b border-steel dark:border-gray-700 flex items-center justify-between">
+      <div className="h-16 px-4 border-b border-steel dark:border-gray-700 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-charcoal dark:bg-gray-700 text-paper flex items-center justify-center font-sans font-normal text-sm border border-charcoal dark:border-gray-600">
-            PA
-          </div>
-          <span className="font-sans font-normal text-lg dark:text-white">Paul</span>
+          <span className="font-sans font-normal text-lg dark:text-white">Play_Tab</span>
         </div>
         <div 
           onClick={onOpenAccountSettings}
@@ -69,8 +66,8 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
       </div>
 
       {/* Search */}
-      <div className="p-4 border-b border-steel dark:border-gray-700">
-        <div className="relative group">
+      <div className="h-16 px-4 border-b border-steel dark:border-gray-700 flex items-center shrink-0">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-2.5 text-steel dark:text-gray-400 w-4 h-4 group-hover:text-brand-hover transition-colors" />
           <input 
             type="text" 
@@ -80,11 +77,6 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
             className="w-full bg-transparent border border-steel dark:border-gray-600 py-2 pl-9 pr-2 text-sm focus:outline-none focus:bg-white dark:focus:bg-gray-800 focus:border-brand-hover dark:focus:border-brand-hover transition-colors font-sans placeholder-steel-light dark:placeholder-gray-500 dark:text-white"
           />
         </div>
-        {searchTerm && (
-          <div className="mt-2 text-xs text-steel dark:text-gray-500">
-            找到 {filteredSpaces.length} 個結果
-          </div>
-        )}
       </div>
 
       {/* Collection Groups - 已移除 */}
@@ -111,7 +103,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
       </div>
 
       {/* Spaces List */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-2 space-y-1 pb-4">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-2 space-y-1 py-4">
         {filteredSpaces.length === 0 ? (
           <div className="text-center text-xs text-steel dark:text-gray-600 py-8 italic px-4">
             {searchTerm ? '找不到符合的空間' : (
@@ -141,8 +133,8 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
       </div>
 
       {/* Space Settings Button */}
-      {selectedSpaceId && (
-        <div className="p-4 border-t border-steel dark:border-gray-700">
+      <div className="h-16 px-4 border-t border-steel dark:border-gray-700 flex items-center shrink-0">
+        {selectedSpaceId ? (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -153,8 +145,10 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
             <Settings size={16} />
             <span className="font-sans">空間設定</span>
           </button>
-        </div>
-      )}
+        ) : (
+          <div className="w-full h-10"></div>
+        )}
+      </div>
     </aside>
   );
 };

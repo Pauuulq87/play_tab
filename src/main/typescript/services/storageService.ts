@@ -10,6 +10,7 @@ const ensureChromeStorage = (): typeof chrome.storage => {
 const COLLECTIONS_KEY = 'collections';
 const SETTINGS_KEY = 'settings';
 const INITIALIZED_KEY = 'initialized';
+const LAST_SELECTED_KEY = 'last_selected'; // 記憶上次選擇的 Category 和 Space
 
 // ==================== 開發環境相容性 (使用 localStorage) ====================
 
@@ -195,6 +196,30 @@ export const toggleCollectionOpen = async (id: string): Promise<void> => {
   
   collections[index].isOpen = !collections[index].isOpen;
   await saveCollections(collections);
+};
+
+// ==================== 記憶上次選擇 ====================
+
+export interface LastSelected {
+  categoryId: string | null;
+  spaceId: string | null;
+}
+
+/**
+ * 保存用戶最後選擇的 Category 和 Space
+ */
+export const saveLastSelected = async (lastSelected: LastSelected): Promise<void> => {
+  const storageApi = getStorage();
+  await storageApi.local.set({ [LAST_SELECTED_KEY]: lastSelected });
+};
+
+/**
+ * 獲取用戶最後選擇的 Category 和 Space
+ */
+export const getLastSelected = async (): Promise<LastSelected | null> => {
+  const storageApi = getStorage();
+  const result = await storageApi.local.get(LAST_SELECTED_KEY);
+  return result[LAST_SELECTED_KEY] || null;
 };
 
 // ==================== 測試用假資料初始化 ====================
