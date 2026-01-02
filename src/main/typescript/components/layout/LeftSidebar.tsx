@@ -1,52 +1,52 @@
 import React, { useState } from 'react';
-import { Search, Link as LinkIcon, ArrowRight, Plus, ArrowDownAZ, LogOut, LayoutGrid, MoreVertical } from 'lucide-react';
-import { SIDEBAR_ITEMS } from '../../../resources/config/constants';
-import { CollectionGroup } from '@/models/types';
-import { createCollection } from '@/services/storageService';
+import { Search, Plus, ArrowDownAZ, LayoutGrid, MoreVertical, Settings } from 'lucide-react';
+import { Space } from '@/models/types';
+import { createSpace } from '@/services/spaceService';
 
 interface LeftSidebarProps {
-  collections: CollectionGroup[];
+  spaces: Space[];
+  selectedSpaceId: string | null;
+  onSelectSpace: (spaceId: string | null) => void;
   onRefresh: () => void;
-  onSelectCollection?: (collectionId: string | null) => void;
-  selectedCollectionId?: string | null;
   onOpenAccountSettings?: () => void;
+  onOpenSpaceSettings?: () => void;
 }
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({ 
-  collections, 
-  onRefresh, 
-  onSelectCollection,
-  selectedCollectionId,
-  onOpenAccountSettings
+  spaces,
+  selectedSpaceId,
+  onSelectSpace,
+  onRefresh,
+  onOpenAccountSettings,
+  onOpenSpaceSettings
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleAddCollection = async () => {
-    const title = prompt('請輸入新收藏集的名稱：');
-    if (!title) return;
+  const handleAddSpace = async () => {
+    const name = prompt('請輸入新空間的名稱：');
+    if (!name) return;
 
     try {
-      const newCollection: CollectionGroup = {
+      const newSpace: Space = {
         id: crypto.randomUUID(),
-        title: title,
-        items: [],
-        isOpen: true,
+        name: name,
+        categoryId: spaces[0]?.categoryId || '', // 使用當前 Category
+        order: spaces.length
       };
-      await createCollection(newCollection);
+      await createSpace(newSpace);
       onRefresh();
     } catch (error) {
-      console.error('Failed to create collection:', error);
+      console.error('Failed to create space:', error);
     }
   };
 
-  const handleSortCollections = () => {
+  const handleSortSpaces = () => {
     alert('排序功能開發中');
   };
 
-  // 篩選收藏集
-  const filteredCollections = collections.filter(c => 
-    c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.items.some(item => item.title.toLowerCase().includes(searchTerm.toLowerCase()))
+  // 篩選 Spaces
+  const filteredSpaces = spaces.filter(s => 
+    s.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -74,7 +74,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
           <Search className="absolute left-3 top-2.5 text-steel dark:text-gray-400 w-4 h-4 group-hover:text-brand-hover transition-colors" />
           <input 
             type="text" 
-            placeholder="搜尋收藏集..." 
+            placeholder="搜尋空間..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-transparent border border-steel dark:border-gray-600 py-2 pl-9 pr-2 text-sm focus:outline-none focus:bg-white dark:focus:bg-gray-800 focus:border-brand-hover dark:focus:border-brand-hover transition-colors font-sans placeholder-steel-light dark:placeholder-gray-500 dark:text-white"
@@ -82,80 +82,79 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
         </div>
         {searchTerm && (
           <div className="mt-2 text-xs text-steel dark:text-gray-500">
-            找到 {filteredCollections.length} 個結果
+            找到 {filteredSpaces.length} 個結果
           </div>
         )}
       </div>
 
-      {/* Quick Links */}
-      <div className="p-4 border-b border-steel dark:border-gray-700 space-y-3">
-        <div 
-          onClick={() => onSelectCollection?.(null)}
-          className={`flex items-center gap-2 text-sm cursor-pointer group transition-colors ${
-            selectedCollectionId === null 
-              ? 'text-brand-hover' 
-              : 'text-steel dark:text-gray-400 hover:text-brand-hover'
-          }`}
-        >
-          <LinkIcon size={16} className="group-hover:stroke-[2px]" />
-          <span className="font-sans">全部收藏</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-steel dark:text-gray-400 hover:text-brand-hover cursor-pointer group transition-colors opacity-50" title="功能開發中">
-          <ArrowRight size={16} className="group-hover:stroke-[2px]" />
-          <span className="font-sans">最近使用</span>
-        </div>
-      </div>
+      {/* Collection Groups - 已移除 */}
+      {/* TODO 後端: 移除 Starred Collections 相關功能 */}
+      {/* TODO 後端: 移除固定的「我的收藏」選項，改為動態顯示當前 Space 名稱 */}
 
       {/* Spaces Header */}
       <div className="p-4 pb-2 flex items-center justify-between">
-        <span className="text-xs font-normal tracking-widest text-steel dark:text-gray-500 font-sans uppercase">Spaces</span>
+        <span className="text-xs font-normal tracking-widest text-steel dark:text-gray-500 font-sans uppercase">SPACES</span>
         <div className="flex gap-2 text-steel dark:text-gray-400">
           <ArrowDownAZ 
             size={14} 
             className="cursor-pointer hover:text-brand-hover transition-colors" 
-            onClick={handleSortCollections}
+            onClick={handleSortSpaces}
             title="排序"
           />
           <Plus 
             size={14} 
             className="cursor-pointer hover:text-brand-hover transition-colors" 
-            onClick={handleAddCollection}
-            title="新增收藏集"
+            onClick={handleAddSpace}
+            title="新增空間"
           />
         </div>
       </div>
 
       {/* Spaces List */}
       <div className="flex-1 overflow-y-auto no-scrollbar px-2 space-y-1 pb-4">
-        {/* 使用者建立的 Spaces/Collections */}
-        {filteredCollections.length === 0 ? (
-          <div className="text-center text-xs text-steel dark:text-gray-600 py-8 italic">
-            {searchTerm ? '找不到符合的收藏集' : (
+        {filteredSpaces.length === 0 ? (
+          <div className="text-center text-xs text-steel dark:text-gray-600 py-8 italic px-4">
+            {searchTerm ? '找不到符合的空間' : (
               <>
-                尚無收藏集
+                此分類尚無空間
                 <br />
                 點擊右上角 + 新增
               </>
             )}
           </div>
         ) : (
-          filteredCollections.map((collection) => (
+          filteredSpaces.map((space) => (
             <div 
-              key={collection.id}
-              onClick={() => onSelectCollection?.(collection.id)}
-              className={`flex items-center gap-3 px-3 py-1.5 text-xs cursor-pointer transition-all border border-transparent ${
-                selectedCollectionId === collection.id 
+              key={space.id}
+              onClick={() => onSelectSpace(space.id)}
+              className={`flex items-center gap-3 px-3 py-2 text-sm cursor-pointer transition-all rounded border border-transparent ${
+                selectedSpaceId === space.id 
                   ? 'bg-brand-hover/20 border-brand-hover text-brand-hover' 
                   : 'text-steel dark:text-gray-400 hover:text-brand-hover hover:bg-steel/5 dark:hover:bg-white/5'
               }`}
             >
-              <LayoutGrid size={12} />
-              <span className="font-sans truncate">{collection.title}</span>
-              <span className="ml-auto text-[10px] opacity-50">{collection.items.length}</span>
+              <LayoutGrid size={14} />
+              <span className="font-sans truncate flex-1">{space.name}</span>
             </div>
           ))
         )}
       </div>
+
+      {/* Space Settings Button */}
+      {selectedSpaceId && (
+        <div className="p-4 border-t border-steel dark:border-gray-700">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenSpaceSettings?.();
+            }}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-steel dark:text-gray-400 hover:text-brand-hover hover:bg-steel/5 dark:hover:bg-white/5 border border-steel dark:border-gray-600 hover:border-brand-hover rounded transition-all"
+          >
+            <Settings size={16} />
+            <span className="font-sans">空間設定</span>
+          </button>
+        </div>
+      )}
     </aside>
   );
 };

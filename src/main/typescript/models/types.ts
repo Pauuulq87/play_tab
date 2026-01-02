@@ -20,9 +20,17 @@ export interface Category {
   order: number;
 }
 
+export interface Space {
+  id: string;
+  name: string;
+  categoryId: string;
+  order: number;
+}
+
 export interface CollectionGroup {
   id: string;
   title: string;
+  spaceId: string;
   items: TabItem[];
   isOpen: boolean;
 }

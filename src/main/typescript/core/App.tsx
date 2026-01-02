@@ -6,35 +6,47 @@ import RightSidebar from '../components/layout/RightSidebar';
 import SettingsModal from '../components/ui/SettingsModal';
 import AddCategoryModal from '../components/ui/AddCategoryModal';
 import CategorySettingsModal from '../components/ui/CategorySettingsModal';
-import { CollectionGroup, UserSettings, Category } from '@/models/types';
-import { getCollections, getUserSettings, initializeData, saveUserSettings } from '@/services/storageService';
+import SpaceSettingsModal from '../components/ui/SpaceSettingsModal';
+import { CollectionGroup, UserSettings, Category, Space } from '@/models/types';
+import { getCollections, getUserSettings, initializeData, saveUserSettings, initializeMockCollections } from '@/services/storageService';
+import { getSpaces, initializeMockSpaces, updateSpace, deleteSpace } from '@/services/spaceService';
 
 const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCategorySettingsOpen, setIsCategorySettingsOpen] = useState(false);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [isSpaceSettingsOpen, setIsSpaceSettingsOpen] = useState(false);
   const [collections, setCollections] = useState<CollectionGroup[]>([]);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   
-  // TODO: 待實作後端 - Category 資料管理
+  // 四層架構：Category -> Space -> Collection -> Item
   const [categories, setCategories] = useState<Category[]>([
-    { id: 'cat-1', name: 'Paul', color: '#3B82F6', order: 0 }
+    { id: 'cat-reading', name: '閱讀', color: '#A855F7', order: 0 },
+    { id: 'cat-work', name: '工作', color: '#3B82F6', order: 1 }
   ]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>('cat-1');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>('cat-reading');
+  
+  const [spaces, setSpaces] = useState<Space[]>([]);
+  const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
       await initializeData(); // 確保資料已初始化
+      await initializeMockSpaces(); // 初始化 Spaces 假資料
+      await initializeMockCollections(); // 初始化 Collections 假資料
       
-      const [storedCollections, storedSettings] = await Promise.all([
+      const [storedCollections, storedSettings, storedSpaces] = await Promise.all([
         getCollections(),
-        getUserSettings()
+        getUserSettings(),
+        getSpaces()
       ]);
       
       setCollections(storedCollections);
+      setSpaces(storedSpaces);
+      
       if (storedSettings) {
         setSettings(storedSettings);
       }
@@ -86,17 +98,42 @@ const App: React.FC = () => {
     // await createCategory(newCategory);
   };
 
-  // 根據選擇的收藏集篩選顯示
-  const displayedCollections = selectedCollectionId 
-    ? collections.filter(c => c.id === selectedCollectionId)
-    : collections;
+  // 更新 Space 名稱
+  const handleSaveSpaceName = async (name: string) => {
+    if (!selectedSpaceId) return;
+    
+    try {
+      await updateSpace(selectedSpaceId, { name });
+      await loadData();
+    } catch (error) {
+      console.error('Failed to update space:', error);
+    }
+  };
 
-  // TODO: 待實作 - 根據選擇的分類篩選收藏集
-  // const filteredByCategory = selectedCategoryId
-  //   ? displayedCollections.filter(c => c.categoryId === selectedCategoryId)
-  //   : displayedCollections;
+  // 刪除 Space
+  const handleDeleteSpace = async (spaceId: string) => {
+    try {
+      await deleteSpace(spaceId);
+      setSelectedSpaceId(null);
+      setIsSpaceSettingsOpen(false);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to delete space:', error);
+    }
+  };
+
+  // 根據選中的 Space 篩選 Collections
+  const displayedCollections = selectedSpaceId
+    ? collections.filter(c => c.spaceId === selectedSpaceId)
+    : [];
+
+  // 根據選中的 Category 篩選 Spaces
+  const filteredSpaces = selectedCategoryId
+    ? spaces.filter(s => s.categoryId === selectedCategoryId)
+    : spaces;
 
   const selectedCategory = categories.find(c => c.id === selectedCategoryId) || null;
+  const selectedSpace = spaces.find(s => s.id === selectedSpaceId) || null;
 
   if (isLoading) {
     return (
@@ -119,11 +156,12 @@ const App: React.FC = () => {
         onOpenSettings={() => setIsCategorySettingsOpen(true)}
       />
       <LeftSidebar 
-        collections={collections} 
-        onRefresh={loadData} 
-        onSelectCollection={setSelectedCollectionId}
-        selectedCollectionId={selectedCollectionId}
+        spaces={filteredSpaces}
+        selectedSpaceId={selectedSpaceId}
+        onSelectSpace={setSelectedSpaceId}
+        onRefresh={loadData}
         onOpenAccountSettings={() => setIsSettingsOpen(true)}
+        onOpenSpaceSettings={() => setIsSpaceSettingsOpen(true)}
       />
       <MainContent 
         collections={displayedCollections} 
@@ -131,6 +169,8 @@ const App: React.FC = () => {
         isDarkMode={settings?.isDarkMode ?? false} 
         toggleTheme={toggleTheme}
         autoCloseTab={settings?.autoCloseTab ?? false}
+        selectedSpaceId={selectedSpaceId}
+        selectedSpaceName={selectedSpace?.name || '我的收藏 (My Collections)'}
       />
       <RightSidebar 
         collections={collections}
@@ -155,6 +195,14 @@ const App: React.FC = () => {
         isOpen={isCategorySettingsOpen}
         onClose={() => setIsCategorySettingsOpen(false)}
         selectedCategory={selectedCategory}
+      />
+      <SpaceSettingsModal
+        isOpen={isSpaceSettingsOpen}
+        onClose={() => setIsSpaceSettingsOpen(false)}
+        spaceName={selectedSpace?.name || ''}
+        spaceId={selectedSpaceId || ''}
+        onSave={handleSaveSpaceName}
+        onDelete={handleDeleteSpace}
       />
     </div>
   );

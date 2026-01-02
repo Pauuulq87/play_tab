@@ -10,6 +10,8 @@ interface MainContentProps {
   isDarkMode: boolean;
   toggleTheme: () => void;
   autoCloseTab?: boolean;
+  selectedSpaceId?: string | null;
+  selectedSpaceName?: string;
 }
 
 const MainContent: React.FC<MainContentProps> = ({ 
@@ -17,7 +19,9 @@ const MainContent: React.FC<MainContentProps> = ({
   onRefresh, 
   isDarkMode, 
   toggleTheme,
-  autoCloseTab = false
+  autoCloseTab = false,
+  selectedSpaceId,
+  selectedSpaceName = '我的收藏 (My Collections)'
 }) => {
   const totalItems = collections.reduce((acc, curr) => acc + curr.items.length, 0);
 
@@ -53,6 +57,11 @@ const MainContent: React.FC<MainContentProps> = ({
   };
 
   const handleAddCollection = async () => {
+    if (!selectedSpaceId) {
+      alert('請先選擇一個空間（Space）');
+      return;
+    }
+
     const title = prompt('請輸入新收藏集的名稱：');
     if (!title) return;
 
@@ -60,6 +69,7 @@ const MainContent: React.FC<MainContentProps> = ({
       const newCollection: CollectionGroup = {
         id: crypto.randomUUID(),
         title: title,
+        spaceId: selectedSpaceId,
         items: [],
         isOpen: true,
       };
@@ -101,7 +111,7 @@ const MainContent: React.FC<MainContentProps> = ({
       {/* Header */}
       <header className="h-16 border-b border-steel dark:border-gray-700 flex items-center justify-between px-6 bg-paper dark:bg-dark-bg shrink-0 transition-colors duration-200">
         <div className="flex items-baseline gap-4">
-          <h1 className="font-sans text-2xl font-normal text-charcoal dark:text-white">我的收藏 (My Collections)</h1>
+          <h1 className="font-sans text-2xl font-normal text-charcoal dark:text-white">{selectedSpaceName}</h1>
           <span className="font-sans text-xs text-steel dark:text-gray-500">| {collections.length} 個收藏 ({totalItems} 項目)</span>
         </div>
         <div className="flex items-center gap-4">

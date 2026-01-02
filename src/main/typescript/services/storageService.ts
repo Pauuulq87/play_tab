@@ -197,3 +197,235 @@ export const toggleCollectionOpen = async (id: string): Promise<void> => {
   await saveCollections(collections);
 };
 
+// ==================== 測試用假資料初始化 ====================
+
+/**
+ * 初始化測試用的 Collections 假資料
+ */
+export const initializeMockCollections = async (): Promise<void> => {
+  const existingCollections = await getCollections();
+  if (existingCollections.length > 0) {
+    return; // 已有資料，不初始化
+  }
+
+  const mockCollections: CollectionGroup[] = [
+    // 閱讀 > 故事書 > 天下雜誌
+    {
+      id: 'col-commonwealth',
+      title: '天下雜誌',
+      spaceId: 'space-story',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-1',
+          title: '2024企業最愛大學生調查',
+          url: 'https://www.cw.com.tw/article/1',
+          favicon: 'https://www.cw.com.tw/favicon.ico'
+        },
+        {
+          id: 'item-2',
+          title: 'AI時代的人才培育',
+          url: 'https://www.cw.com.tw/article/2',
+          favicon: 'https://www.cw.com.tw/favicon.ico'
+        }
+      ]
+    },
+    // 閱讀 > 故事書 > 商業周刊
+    {
+      id: 'col-business-weekly',
+      title: '商業周刊',
+      spaceId: 'space-story',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-3',
+          title: '台積電2024展望',
+          url: 'https://www.businessweekly.com.tw/article/1',
+          favicon: 'https://www.businessweekly.com.tw/favicon.ico'
+        }
+      ]
+    },
+    // 閱讀 > 故事書 > 網路文章
+    {
+      id: 'col-web-articles',
+      title: '網路文章',
+      spaceId: 'space-story',
+      isOpen: false,
+      items: []
+    },
+    // 閱讀 > 小說 > 台灣
+    {
+      id: 'col-novel-taiwan',
+      title: '台灣',
+      spaceId: 'space-novel',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-4',
+          title: '博客來 - 台灣小說專區',
+          url: 'https://www.books.com.tw/taiwan-novels',
+          favicon: 'https://www.books.com.tw/favicon.ico'
+        }
+      ]
+    },
+    // 閱讀 > 小說 > 美國
+    {
+      id: 'col-novel-usa',
+      title: '美國',
+      spaceId: 'space-novel',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-5',
+          title: 'Amazon - Best Sellers in Literature',
+          url: 'https://www.amazon.com/best-sellers-books',
+          favicon: 'https://www.amazon.com/favicon.ico'
+        }
+      ]
+    },
+    // 閱讀 > 工具書 > 財經
+    {
+      id: 'col-finance',
+      title: '財經',
+      spaceId: 'space-reference',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-6',
+          title: '財經M平方',
+          url: 'https://www.macromicro.me/',
+          favicon: 'https://www.macromicro.me/favicon.ico'
+        }
+      ]
+    },
+    // 閱讀 > 工具書 > AI
+    {
+      id: 'col-ai',
+      title: 'AI',
+      spaceId: 'space-reference',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-7',
+          title: 'OpenAI Documentation',
+          url: 'https://platform.openai.com/docs',
+          favicon: 'https://platform.openai.com/favicon.ico'
+        },
+        {
+          id: 'item-8',
+          title: 'Claude Documentation',
+          url: 'https://docs.anthropic.com/',
+          favicon: 'https://docs.anthropic.com/favicon.ico'
+        }
+      ]
+    },
+    // 工作 > 網站 > 購物網站
+    {
+      id: 'col-shopping',
+      title: '購物網站',
+      spaceId: 'space-website',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-9',
+          title: 'Shopify - 電商平台範例',
+          url: 'https://www.shopify.com/examples',
+          favicon: 'https://www.shopify.com/favicon.ico'
+        }
+      ]
+    },
+    // 工作 > 網站 > 形象網站
+    {
+      id: 'col-corporate',
+      title: '形象網站',
+      spaceId: 'space-website',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-10',
+          title: 'Awwwards - 最佳網站設計',
+          url: 'https://www.awwwards.com/',
+          favicon: 'https://www.awwwards.com/favicon.ico'
+        }
+      ]
+    },
+    // 工作 > 網站 > 部落格網站
+    {
+      id: 'col-blog',
+      title: '部落格網站',
+      spaceId: 'space-website',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-11',
+          title: 'Medium - 設計文章',
+          url: 'https://medium.com/design',
+          favicon: 'https://medium.com/favicon.ico'
+        }
+      ]
+    },
+    // 工作 > 靈感 > 文章
+    {
+      id: 'col-inspiration-articles',
+      title: '文章',
+      spaceId: 'space-inspiration',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-12',
+          title: 'Design Inspiration - Dribbble',
+          url: 'https://dribbble.com/',
+          favicon: 'https://dribbble.com/favicon.ico'
+        }
+      ]
+    },
+    // 工作 > 靈感 > LOGO設計
+    {
+      id: 'col-logo-design',
+      title: 'LOGO設計',
+      spaceId: 'space-inspiration',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-13',
+          title: 'LogoLounge',
+          url: 'https://www.logolounge.com/',
+          favicon: 'https://www.logolounge.com/favicon.ico'
+        }
+      ]
+    },
+    // 工作 > 參考 > 日本
+    {
+      id: 'col-ref-japan',
+      title: '日本',
+      spaceId: 'space-reference-work',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-14',
+          title: '日本設計網站精選',
+          url: 'https://www.japandesign.ne.jp/',
+          favicon: 'https://www.japandesign.ne.jp/favicon.ico'
+        }
+      ]
+    },
+    // 工作 > 參考 > 台灣
+    {
+      id: 'col-ref-taiwan',
+      title: '台灣',
+      spaceId: 'space-reference-work',
+      isOpen: true,
+      items: [
+        {
+          id: 'item-15',
+          title: '台灣設計師週',
+          url: 'https://www.designersweek.tw/',
+          favicon: 'https://www.designersweek.tw/favicon.ico'
+        }
+      ]
+    }
+  ];
+
+  await saveCollections(mockCollections);
+};
+
