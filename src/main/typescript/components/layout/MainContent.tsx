@@ -15,6 +15,8 @@ interface MainContentProps {
   selectedSpaceName?: string;
 }
 
+type ViewMode = 'card' | 'compact' | 'list';
+
 const MainContent: React.FC<MainContentProps> = ({ 
   collections, 
   onRefresh, 
@@ -25,8 +27,28 @@ const MainContent: React.FC<MainContentProps> = ({
   selectedSpaceName = '我的收藏 (My Collections)'
 }) => {
   const [editingItem, setEditingItem] = React.useState<{ item: TabItem; collectionId: string } | null>(null);
+  const [viewMode, setViewMode] = React.useState<ViewMode>('card');
+  const [showViewMenu, setShowViewMenu] = React.useState(false);
+  const viewMenuRef = React.useRef<HTMLDivElement>(null);
   
   const totalItems = collections.reduce((acc, curr) => acc + curr.items.length, 0);
+
+  // Close view menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (viewMenuRef.current && !viewMenuRef.current.contains(event.target as Node)) {
+        setShowViewMenu(false);
+      }
+    };
+
+    if (showViewMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showViewMenu]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -167,7 +189,7 @@ const MainContent: React.FC<MainContentProps> = ({
       </header>
 
       {/* Toolbar */}
-      <div className="h-16 border-b border-steel dark:border-gray-700 flex items-center justify-between px-6 bg-paper/50 dark:bg-dark-bg/95 backdrop-blur-sm shrink-0 transition-colors duration-200">
+      <div className="h-16 border-b border-steel dark:border-gray-700 flex items-center justify-between px-6 bg-paper/50 dark:bg-dark-bg/95 backdrop-blur-sm shrink-0 transition-colors duration-200 relative z-50">
         <div className="flex items-center gap-6">
           <button className="flex items-center gap-2 text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover transition-colors opacity-50 cursor-not-allowed" title="功能開發中">
             <GripVertical size={14} />
@@ -179,11 +201,55 @@ const MainContent: React.FC<MainContentProps> = ({
             <span>標籤篩選</span>
             <ChevronDown size={12} />
           </button>
-          <button className="flex items-center gap-2 text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover transition-colors opacity-50 cursor-not-allowed" title="功能開發中">
-            <LayoutGrid size={14} />
-            <span>檢視</span>
-            <ChevronDown size={12} />
-          </button>
+          <div ref={viewMenuRef} className="relative">
+            <button 
+              onClick={() => setShowViewMenu(!showViewMenu)}
+              className="flex items-center gap-2 text-xs font-sans text-steel dark:text-gray-400 hover:text-brand-hover transition-colors"
+            >
+              <LayoutGrid size={14} />
+              <span>檢視</span>
+              <ChevronDown size={12} />
+            </button>
+            
+            {/* View Mode Dropdown */}
+            {showViewMenu && (
+              <div className="absolute top-full left-0 mt-2 bg-white dark:bg-dark-surface border border-steel dark:border-gray-700 rounded shadow-xl z-[100] min-w-[140px] py-1">
+                <button
+                  onClick={() => {
+                    setViewMode('card');
+                    setShowViewMenu(false);
+                  }}
+                  className={`w-full px-4 py-2 text-left text-sm hover:bg-brand-hover/10 transition-colors ${
+                    viewMode === 'card' ? 'bg-brand-hover/20 text-brand-hover font-medium' : 'text-charcoal dark:text-gray-300'
+                  }`}
+                >
+                  卡片
+                </button>
+                <button
+                  onClick={() => {
+                    setViewMode('compact');
+                    setShowViewMenu(false);
+                  }}
+                  className={`w-full px-4 py-2 text-left text-sm hover:bg-brand-hover/10 transition-colors ${
+                    viewMode === 'compact' ? 'bg-brand-hover/20 text-brand-hover font-medium' : 'text-charcoal dark:text-gray-300'
+                  }`}
+                >
+                  精簡
+                </button>
+                <button
+                  onClick={() => {
+                    setViewMode('list');
+                    setShowViewMenu(false);
+                  }}
+                  className={`w-full px-4 py-2 text-left text-sm hover:bg-brand-hover/10 transition-colors ${
+                    viewMode === 'list' ? 'bg-brand-hover/20 text-brand-hover font-medium' : 'text-charcoal dark:text-gray-300'
+                  }`}
+                >
+                  列表
+                </button>
+              </div>
+            )}
+          </div>
           <div className="w-px h-4 bg-steel/30 dark:bg-gray-700 mx-2"></div>
           <button 
             onClick={() => {
@@ -250,62 +316,170 @@ const MainContent: React.FC<MainContentProps> = ({
                 <span className="text-xs text-steel dark:text-gray-500">({collection.items.length})</span>
               </div>
 
-              {/* Collection Items Grid */}
+              {/* Collection Items - Dynamic View */}
               {collection.isOpen && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className={
+                  viewMode === 'card' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' :
+                  viewMode === 'compact' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3' :
+                  'flex flex-col gap-2'
+                }>
                   {collection.items.length > 0 ? (
-                    collection.items.map((item) => (
-                      <div 
-                        key={item.id} 
-                        onClick={() => handleCardClick(item.url)}
-                        className="
-                          bg-white dark:bg-[#1E1E1E] border border-steel dark:border-gray-700 p-4 h-32 flex flex-col justify-between 
-                          hover:shadow-[4px_4px_0px_0px_rgba(230,182,68,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(230,182,68,0.5)] 
-                          hover:border-brand-hover transition-all cursor-pointer relative group/item
-                        "
-                      >
-                        {/* Delete button - top right corner */}
-                        <button
-                          onClick={(e) => handleDeleteItem(e, collection.id, item.id)}
-                          className="absolute top-2 right-2 opacity-0 group-hover/item:opacity-100 transition-opacity p-1 hover:bg-red-500/10 rounded"
-                          title="刪除"
-                        >
-                          <X size={16} className="text-steel dark:text-gray-400 hover:text-red-500" />
-                        </button>
+                    collection.items.map((item) => {
+                      if (viewMode === 'card') {
+                        // Card View
+                        return (
+                          <div 
+                            key={item.id} 
+                            onClick={() => handleCardClick(item.url)}
+                            className="
+                              bg-white dark:bg-[#1E1E1E] border border-steel dark:border-gray-700 p-4 h-32 flex flex-col justify-between 
+                              hover:shadow-[4px_4px_0px_0px_rgba(230,182,68,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(230,182,68,0.5)] 
+                              hover:border-brand-hover transition-all cursor-pointer relative group/item
+                            "
+                          >
+                            {/* Delete button - top right corner */}
+                            <button
+                              onClick={(e) => handleDeleteItem(e, collection.id, item.id)}
+                              className="absolute top-2 right-2 opacity-0 group-hover/item:opacity-100 transition-opacity p-1 hover:bg-red-500/10 rounded"
+                              title="刪除"
+                            >
+                              <X size={16} className="text-steel dark:text-gray-400 hover:text-red-500" />
+                            </button>
 
-                        <div className="flex items-start gap-3">
-                          {/* Dynamic Icon based on content */}
-                          <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-paper dark:bg-gray-800 border border-steel dark:border-gray-600 text-steel dark:text-gray-400 group-hover/item:border-brand-hover group-hover/item:text-brand-hover transition-colors">
-                            {item.favicon ? (
-                              <img src={item.favicon} alt="" className="w-4 h-4" />
-                            ) : item.url?.includes('youtube') ? (
-                              <MonitorPlay size={16} />
-                            ) : (
-                              <FileText size={16} />
-                            )}
+                            <div className="flex items-start gap-3">
+                              {/* Dynamic Icon based on content */}
+                              <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-paper dark:bg-gray-800 border border-steel dark:border-gray-600 text-steel dark:text-gray-400 group-hover/item:border-brand-hover group-hover/item:text-brand-hover transition-colors">
+                                {item.favicon ? (
+                                  <img src={item.favicon} alt="" className="w-4 h-4" />
+                                ) : item.url?.includes('youtube') ? (
+                                  <MonitorPlay size={16} />
+                                ) : (
+                                  <FileText size={16} />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-sans text-sm font-normal text-charcoal dark:text-gray-200 line-clamp-2 leading-tight mb-1 group-hover/item:text-brand-hover transition-colors">
+                                  {item.title}
+                                </h3>
+                              </div>
+                            </div>
+                            
+                            <div className="mt-2 pt-2 border-t border-dashed border-steel/30 dark:border-gray-700 flex items-center justify-between">
+                               <p className="text-[10px] font-sans font-thin text-steel dark:text-gray-500 truncate flex-1 group-hover/item:text-brand-hover transition-colors">{item.url}</p>
+                               {/* Edit button on hover */}
+                               <div className="opacity-0 group-hover/item:opacity-100 transition-opacity ml-2">
+                                 <button
+                                   onClick={(e) => handleEditItem(e, item, collection.id)}
+                                   className="p-1 hover:bg-brand-hover/10 rounded transition-colors"
+                                   title="編輯"
+                                 >
+                                   <Edit3 size={14} className="text-steel dark:text-gray-400 hover:text-brand-hover" />
+                                 </button>
+                               </div>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-sans text-sm font-normal text-charcoal dark:text-gray-200 line-clamp-2 leading-tight mb-1 group-hover/item:text-brand-hover transition-colors">
-                              {item.title}
-                            </h3>
+                        );
+                      } else if (viewMode === 'compact') {
+                        // Compact View
+                        return (
+                          <div 
+                            key={item.id} 
+                            onClick={() => handleCardClick(item.url)}
+                            className="
+                              bg-white dark:bg-[#1E1E1E] border border-steel dark:border-gray-700 p-2.5 h-10 flex items-center gap-2
+                              hover:shadow-[2px_2px_0px_0px_rgba(230,182,68,1)] dark:hover:shadow-[2px_2px_0px_0px_rgba(230,182,68,0.5)] 
+                              hover:border-brand-hover transition-all cursor-pointer relative group/item
+                            "
+                          >
+                            {/* Delete button - top right corner */}
+                            <button
+                              onClick={(e) => handleDeleteItem(e, collection.id, item.id)}
+                              className="absolute top-0.5 right-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity p-0.5 hover:bg-red-500/10 rounded"
+                              title="刪除"
+                            >
+                              <X size={10} className="text-steel dark:text-gray-400 hover:text-red-500" />
+                            </button>
+
+                            {/* Dynamic Icon based on content */}
+                            <div className="w-6 h-6 shrink-0 flex items-center justify-center bg-paper dark:bg-gray-800 border border-steel dark:border-gray-600 text-steel dark:text-gray-400 group-hover/item:border-brand-hover group-hover/item:text-brand-hover transition-colors">
+                              {item.favicon ? (
+                                <img src={item.favicon} alt="" className="w-3 h-3" />
+                              ) : item.url?.includes('youtube') ? (
+                                <MonitorPlay size={12} />
+                              ) : (
+                                <FileText size={12} />
+                              )}
+                            </div>
+                            
+                            {/* Title - single line with ellipsis */}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-sans text-xs font-normal text-charcoal dark:text-gray-200 truncate group-hover/item:text-brand-hover transition-colors">
+                                {item.title}
+                              </h3>
+                            </div>
+
+                            {/* Edit button */}
+                            <button
+                              onClick={(e) => handleEditItem(e, item, collection.id)}
+                              className="opacity-0 group-hover/item:opacity-100 transition-opacity p-0.5 hover:bg-brand-hover/10 rounded shrink-0"
+                              title="編輯"
+                            >
+                              <Edit3 size={10} className="text-steel dark:text-gray-400 hover:text-brand-hover" />
+                            </button>
                           </div>
-                        </div>
-                        
-                        <div className="mt-2 pt-2 border-t border-dashed border-steel/30 dark:border-gray-700 flex items-center justify-between">
-                           <p className="text-[10px] font-sans font-thin text-steel dark:text-gray-500 truncate flex-1 group-hover/item:text-brand-hover transition-colors">{item.url}</p>
-                           {/* Edit button on hover */}
-                           <div className="opacity-0 group-hover/item:opacity-100 transition-opacity ml-2">
-                             <button
-                               onClick={(e) => handleEditItem(e, item, collection.id)}
-                               className="p-1 hover:bg-brand-hover/10 rounded transition-colors"
-                               title="編輯"
-                             >
-                               <Edit3 size={14} className="text-steel dark:text-gray-400 hover:text-brand-hover" />
-                             </button>
-                           </div>
-                        </div>
-                      </div>
-                    ))
+                        );
+                      } else {
+                        // List View
+                        return (
+                          <div 
+                            key={item.id} 
+                            onClick={() => handleCardClick(item.url)}
+                            className="
+                              bg-white dark:bg-[#1E1E1E] border border-steel dark:border-gray-700 p-4 
+                              hover:border-brand-hover hover:bg-brand-hover/5 transition-all cursor-pointer relative group/item
+                              flex items-center gap-4
+                            "
+                          >
+                            {/* Delete button */}
+                            <button
+                              onClick={(e) => handleDeleteItem(e, collection.id, item.id)}
+                              className="opacity-0 group-hover/item:opacity-100 transition-opacity p-1 hover:bg-red-500/10 rounded shrink-0"
+                              title="刪除"
+                            >
+                              <X size={14} className="text-steel dark:text-gray-400 hover:text-red-500" />
+                            </button>
+
+                            {/* Icon */}
+                            <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-paper dark:bg-gray-800 border border-steel dark:border-gray-600 text-steel dark:text-gray-400 group-hover/item:border-brand-hover group-hover/item:text-brand-hover transition-colors">
+                              {item.favicon ? (
+                                <img src={item.favicon} alt="" className="w-4 h-4" />
+                              ) : item.url?.includes('youtube') ? (
+                                <MonitorPlay size={16} />
+                              ) : (
+                                <FileText size={16} />
+                              )}
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-sans text-sm font-normal text-charcoal dark:text-gray-200 truncate group-hover/item:text-brand-hover transition-colors mb-1">
+                                {item.title}
+                              </h3>
+                              <p className="text-xs text-steel dark:text-gray-500 truncate">{item.url}</p>
+                            </div>
+
+                            {/* Edit button */}
+                            <button
+                              onClick={(e) => handleEditItem(e, item, collection.id)}
+                              className="opacity-0 group-hover/item:opacity-100 transition-opacity p-2 hover:bg-brand-hover/10 rounded shrink-0"
+                              title="編輯"
+                            >
+                              <Edit3 size={14} className="text-steel dark:text-gray-400 hover:text-brand-hover" />
+                            </button>
+                          </div>
+                        );
+                      }
+                    })
                   ) : (
                     <div className="col-span-full py-8 border border-dashed border-steel/40 dark:border-gray-700 flex items-center justify-center text-steel dark:text-gray-600 text-sm font-sans italic bg-paper dark:bg-transparent">
                       此收藏集尚無項目（可將分頁拖曳至此）
