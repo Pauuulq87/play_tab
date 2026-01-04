@@ -1,37 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Settings, Search } from 'lucide-react';
+import { Space } from '@/models/types';
 
 interface SpaceSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  spaceName: string;
-  spaceId: string;
-  onSave?: (name: string) => void;
-  onDelete?: (spaceId: string) => void;
+  selectedSpace: Space | null;
+  onSaveSpaceName: (spaceId: string, name: string) => Promise<void>;
+  onDeleteSpace: (spaceId: string) => Promise<void>;
 }
 
 const SpaceSettingsModal: React.FC<SpaceSettingsModalProps> = ({
   isOpen,
   onClose,
-  spaceName,
-  spaceId,
-  onSave,
-  onDelete
+  selectedSpace,
+  onSaveSpaceName,
+  onDeleteSpace
 }) => {
-  const [editedName, setEditedName] = useState(spaceName);
+  const [editedName, setEditedName] = useState('');
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (selectedSpace) {
+      setEditedName(selectedSpace.name);
+    }
+  }, [selectedSpace]);
 
-  const handleSaveName = () => {
-    if (onSave && editedName.trim()) {
-      onSave(editedName.trim());
+  if (!isOpen || !selectedSpace) return null;
+
+  const handleSaveName = async () => {
+    if (editedName.trim() && editedName !== selectedSpace.name) {
+      try {
+        await onSaveSpaceName(selectedSpace.id, editedName.trim());
+        onClose();
+      } catch (error) {
+        console.error('Failed to save space name:', error);
+      }
     }
   };
 
-  const handleDelete = () => {
-    if (confirm(`確定要刪除空間「${spaceName}」嗎？此操作無法復原。`)) {
-      onDelete?.(spaceId);
-      onClose();
+  const handleDelete = async () => {
+    if (confirm(`確定要刪除空間「${selectedSpace.name}」嗎？此操作無法復原。`)) {
+      try {
+        await onDeleteSpace(selectedSpace.id);
+      } catch (error) {
+        console.error('Failed to delete space:', error);
+      }
     }
   };
 
@@ -41,7 +54,7 @@ const SpaceSettingsModal: React.FC<SpaceSettingsModalProps> = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-steel dark:border-gray-700 flex items-center justify-between">
           <h2 className="text-xl font-sans font-normal text-charcoal dark:text-white">
-            編輯空間：{spaceName}
+            編輯空間：{selectedSpace.name}
           </h2>
           <button
             onClick={onClose}

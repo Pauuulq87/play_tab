@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trash2 } from 'lucide-react';
+import { fetchPreviewImageUrl } from '@/services/previewService';
 
 interface EditItemModalProps {
   isOpen: boolean;
@@ -11,11 +12,68 @@ interface EditItemModalProps {
     favicon?: string;
     description?: string;
     createdAt?: string;
+    previewImageAutoUrl?: string;
+    previewImageUserDataUrl?: string;
   };
   collectionId: string;
-  onSave: (collectionId: string, itemId: string, updates: { title: string; url: string; description: string }) => Promise<void>;
+  onSave: (
+    collectionId: string,
+    itemId: string,
+    updates: {
+      title: string;
+      url: string;
+      description: string;
+      previewImageAutoUrl?: string;
+      previewImageUserDataUrl?: string;
+    }
+  ) => Promise<void>;
   onDelete: (collectionId: string, itemId: string) => Promise<void>;
 }
+
+const cropImageToAspectDataUrl = async (
+  file: File,
+  aspectRatio: number,
+  maxWidth: number
+): Promise<string> => {
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onload = () => resolve(String(reader.result));
+    reader.readAsDataURL(file);
+  });
+
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Failed to load image'));
+    image.src = dataUrl;
+  });
+
+  const srcW = img.naturalWidth || img.width;
+  const srcH = img.naturalHeight || img.height;
+
+  let cropW = srcW;
+  let cropH = cropW / aspectRatio;
+  if (cropH > srcH) {
+    cropH = srcH;
+    cropW = cropH * aspectRatio;
+  }
+
+  const sx = Math.max(0, Math.round((srcW - cropW) / 2));
+  const sy = Math.max(0, Math.round((srcH - cropH) / 2));
+
+  const outW = Math.min(maxWidth, Math.round(cropW));
+  const outH = Math.round(outW / aspectRatio);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = outW;
+  canvas.height = outH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Failed to get canvas context');
+
+  ctx.drawImage(img, sx, sy, Math.round(cropW), Math.round(cropH), 0, 0, outW, outH);
+  return canvas.toDataURL('image/jpeg', 0.85);
+};
 
 const EditItemModal: React.FC<EditItemModalProps> = ({
   isOpen,
@@ -29,16 +87,55 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
   const [description, setDescription] = useState(item.description || '');
   const [url, setUrl] = useState(item.url || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [previewImageAutoUrl, setPreviewImageAutoUrl] = useState(item.previewImageAutoUrl || '');
+  const [previewImageUserDataUrl, setPreviewImageUserDataUrl] = useState(item.previewImageUserDataUrl || '');
+  const [isFetchingPreview, setIsFetchingPreview] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setTitle(item.title);
       setDescription(item.description || '');
       setUrl(item.url || '');
+      setPreviewImageAutoUrl(item.previewImageAutoUrl || '');
+      setPreviewImageUserDataUrl(item.previewImageUserDataUrl || '');
     }
   }, [isOpen, item]);
 
   if (!isOpen) return null;
+
+  const activePreviewUrl = previewImageUserDataUrl || previewImageAutoUrl;
+
+  const handleUploadPreviewImage = async (file: File) => {
+    try {
+      const cropped = await cropImageToAspectDataUrl(file, 16 / 9, 1200);
+      setPreviewImageUserDataUrl(cropped);
+    } catch (error) {
+      console.error('Failed to process preview image:', error);
+      alert('圖片處理失敗');
+    }
+  };
+
+  const handleFetchAutoPreview = async () => {
+    if (!url.trim()) {
+      alert('請先填寫網址');
+      return;
+    }
+
+    try {
+      setIsFetchingPreview(true);
+      const fetched = await fetchPreviewImageUrl(url.trim());
+      if (!fetched) {
+        alert('未找到可用的預覽圖片（og:image / twitter:image）');
+        return;
+      }
+      setPreviewImageAutoUrl(fetched);
+    } catch (error) {
+      console.error('Failed to fetch preview image:', error);
+      alert('抓取預覽圖失敗');
+    } finally {
+      setIsFetchingPreview(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!title.trim() || !url.trim()) {
@@ -51,7 +148,9 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
       await onSave(collectionId, item.id, { 
         title: title.trim(), 
         url: url.trim(),
-        description: description.trim()
+        description: description.trim(),
+        previewImageAutoUrl: previewImageAutoUrl || undefined,
+        previewImageUserDataUrl: previewImageUserDataUrl || undefined
       });
       onClose();
     } catch (error) {
@@ -142,6 +241,66 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
             )}
           </div>
 
+          {/* Preview Image */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <label className="text-sm font-sans text-charcoal dark:text-white font-medium">
+                預覽圖片（固定比例 16:9）
+              </label>
+              <button
+                onClick={handleFetchAutoPreview}
+                disabled={isFetchingPreview}
+                className="text-xs text-steel dark:text-gray-400 hover:text-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isFetchingPreview ? '抓取中...' : '自動抓取'}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleUploadPreviewImage(file);
+                  e.currentTarget.value = '';
+                }}
+                className="block w-full text-xs text-steel dark:text-gray-400 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:text-xs file:bg-steel/10 file:text-charcoal dark:file:bg-gray-700 dark:file:text-white hover:file:bg-brand-hover/10"
+              />
+              {previewImageUserDataUrl && (
+                <button
+                  onClick={() => setPreviewImageUserDataUrl('')}
+                  className="text-xs text-steel dark:text-gray-400 hover:text-red-500 transition-colors whitespace-nowrap"
+                  title="清除自訂圖片"
+                >
+                  清除
+                </button>
+              )}
+            </div>
+
+            {activePreviewUrl ? (
+              <div className="w-full border border-steel/50 dark:border-gray-700 rounded overflow-hidden bg-steel/5 dark:bg-gray-800/30">
+                <div className="w-full aspect-video">
+                  <img
+                    src={activePreviewUrl}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+                <div className="px-3 py-2 text-[11px] text-steel dark:text-gray-500 break-all">
+                  {previewImageUserDataUrl ? '來源：自訂圖片' : `來源：${previewImageAutoUrl || '自動抓取'}`}
+                </div>
+              </div>
+            ) : (
+              <div className="text-xs text-steel dark:text-gray-500">
+                尚未設定預覽圖（可自動抓取或上傳）
+              </div>
+            )}
+          </div>
+
           {/* Created Date */}
           {item.createdAt && (
             <div className="space-y-2">
@@ -190,4 +349,3 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
 };
 
 export default EditItemModal;
-

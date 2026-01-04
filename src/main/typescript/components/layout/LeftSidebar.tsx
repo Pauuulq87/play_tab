@@ -5,6 +5,7 @@ import { createSpace } from '@/services/spaceService';
 
 interface LeftSidebarProps {
   spaces: Space[];
+  selectedCategoryId: string | null;
   selectedSpaceId: string | null;
   onSelectSpace: (spaceId: string | null) => void;
   onRefresh: () => void;
@@ -14,6 +15,7 @@ interface LeftSidebarProps {
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({ 
   spaces,
+  selectedCategoryId,
   selectedSpaceId,
   onSelectSpace,
   onRefresh,
@@ -23,6 +25,11 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleAddSpace = async () => {
+    if (!selectedCategoryId) {
+      alert('請先選擇一個分類（Category）再新增空間');
+      return;
+    }
+
     const name = prompt('請輸入新空間的名稱：');
     if (!name) return;
 
@@ -30,10 +37,11 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
       const newSpace: Space = {
         id: crypto.randomUUID(),
         name: name,
-        categoryId: spaces[0]?.categoryId || '', // 使用當前 Category
+        categoryId: selectedCategoryId,
         order: spaces.length
       };
       await createSpace(newSpace);
+      onSelectSpace(newSpace.id);
       onRefresh();
     } catch (error) {
       console.error('Failed to create space:', error);

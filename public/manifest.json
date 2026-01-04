@@ -9,6 +9,10 @@
     "storage",
     "bookmarks"
   ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
   "action": {
     "default_title": "開啟 Play Tab"
   },

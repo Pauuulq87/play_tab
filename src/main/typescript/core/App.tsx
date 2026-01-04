@@ -10,6 +10,7 @@ import SpaceSettingsModal from '../components/ui/SpaceSettingsModal';
 import { CollectionGroup, UserSettings, Category, Space } from '@/models/types';
 import { getCollections, getUserSettings, initializeData, saveUserSettings, initializeMockCollections, saveLastSelected, getLastSelected } from '@/services/storageService';
 import { getSpaces, initializeMockSpaces, updateSpace, deleteSpace } from '@/services/spaceService';
+import { getCategories, initializeMockCategories, createCategory, updateCategory, deleteCategory } from '@/services/categoryService';
 
 const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -22,11 +23,8 @@ const App: React.FC = () => {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   
   // 四層架構：Category -> Space -> Collection -> Item
-  const [categories, setCategories] = useState<Category[]>([
-    { id: 'cat-reading', name: '閱讀', color: '#A855F7', order: 0 },
-    { id: 'cat-work', name: '工作', color: '#3B82F6', order: 1 }
-  ]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>('cat-reading');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
@@ -35,18 +33,21 @@ const App: React.FC = () => {
     try {
       setIsLoading(true);
       await initializeData(); // 確保資料已初始化
+      await initializeMockCategories(); // 初始化 Categories 假資料
       await initializeMockSpaces(); // 初始化 Spaces 假資料
       await initializeMockCollections(); // 初始化 Collections 假資料
       
-      const [storedCollections, storedSettings, storedSpaces, lastSelected] = await Promise.all([
+      const [storedCollections, storedSettings, storedSpaces, storedCategories, lastSelected] = await Promise.all([
         getCollections(),
         getUserSettings(),
         getSpaces(),
+        getCategories(),
         getLastSelected()
       ]);
       
       setCollections(storedCollections);
       setSpaces(storedSpaces);
+      setCategories(storedCategories);
       
       if (storedSettings) {
         setSettings(storedSettings);
@@ -54,7 +55,7 @@ const App: React.FC = () => {
       
       // 恢復上次選擇的 Category 和 Space
       if (lastSelected) {
-        if (lastSelected.categoryId && categories.some(c => c.id === lastSelected.categoryId)) {
+        if (lastSelected.categoryId && storedCategories.some(c => c.id === lastSelected.categoryId)) {
           setSelectedCategoryId(lastSelected.categoryId);
         }
         if (lastSelected.spaceId && storedSpaces.some(s => s.id === lastSelected.spaceId)) {
@@ -62,7 +63,7 @@ const App: React.FC = () => {
         }
       } else {
         // 首次使用：自動選中第一個 Category 的第一個 Space
-        const firstCategory = categories[0];
+        const firstCategory = storedCategories[0];
         if (firstCategory) {
           setSelectedCategoryId(firstCategory.id);
           const firstSpace = storedSpaces.find(s => s.categoryId === firstCategory.id);
@@ -75,10 +76,6 @@ const App: React.FC = () => {
           }
         }
       }
-      
-      // TODO: 待實作 - 從 categoryService 載入分類資料
-      // const storedCategories = await getCategories();
-      // setCategories(storedCategories);
       
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -118,27 +115,59 @@ const App: React.FC = () => {
     await saveUserSettings(newSettings);
   };
 
-  // TODO: 待實作 - 新增分類邏輯
-  const handleAddCategory = (name: string, color: string) => {
+  // 新增分類
+  const handleAddCategory = async (name: string, color: string) => {
     const newCategory: Category = {
       id: `cat-${Date.now()}`,
       name,
       color,
       order: categories.length
     };
-    setCategories([...categories, newCategory]);
-    setIsAddCategoryOpen(false);
-    
-    // TODO: 待實作後端 - 儲存到 categoryService
-    // await createCategory(newCategory);
-  };
-
-  // 更新 Space 名稱
-  const handleSaveSpaceName = async (name: string) => {
-    if (!selectedSpaceId) return;
     
     try {
-      await updateSpace(selectedSpaceId, { name });
+      await createCategory(newCategory);
+      await loadData(); // 重新載入資料
+      setIsAddCategoryOpen(false);
+      
+      // 自動選中新增的分類
+      setSelectedCategoryId(newCategory.id);
+    } catch (error) {
+      console.error('Failed to create category:', error);
+    }
+  };
+
+  // 更新分類
+  const handleUpdateCategory = async (updatedCategory: Category) => {
+    try {
+      await updateCategory(updatedCategory);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to update category:', error);
+    }
+  };
+
+  // 刪除分類
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      await deleteCategory(categoryId);
+      
+      // 如果刪除的是當前選中的分類，清除選擇
+      if (selectedCategoryId === categoryId) {
+        setSelectedCategoryId(null);
+        setSelectedSpaceId(null);
+      }
+      
+      setIsCategorySettingsOpen(false);
+      await loadData();
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+    }
+  };
+
+  // 更新 Space
+  const handleSaveSpaceName = async (spaceId: string, name: string) => {
+    try {
+      await updateSpace(spaceId, { name });
       await loadData();
     } catch (error) {
       console.error('Failed to update space:', error);
@@ -192,6 +221,7 @@ const App: React.FC = () => {
       />
       <LeftSidebar 
         spaces={filteredSpaces}
+        selectedCategoryId={selectedCategoryId}
         selectedSpaceId={selectedSpaceId}
         onSelectSpace={setSelectedSpaceId}
         onRefresh={loadData}
@@ -230,14 +260,15 @@ const App: React.FC = () => {
         isOpen={isCategorySettingsOpen}
         onClose={() => setIsCategorySettingsOpen(false)}
         selectedCategory={selectedCategory}
+        onUpdate={handleUpdateCategory}
+        onDelete={handleDeleteCategory}
       />
       <SpaceSettingsModal
         isOpen={isSpaceSettingsOpen}
         onClose={() => setIsSpaceSettingsOpen(false)}
-        spaceName={selectedSpace?.name || ''}
-        spaceId={selectedSpaceId || ''}
-        onSave={handleSaveSpaceName}
-        onDelete={handleDeleteSpace}
+        selectedSpace={selectedSpace}
+        onSaveSpaceName={handleSaveSpaceName}
+        onDeleteSpace={handleDeleteSpace}
       />
     </div>
   );

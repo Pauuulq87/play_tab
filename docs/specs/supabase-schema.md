@@ -15,12 +15,134 @@
 
 | 表名稱 | 用途 | 主鍵 |
 |-------|------|-----|
+| categories | 儲存使用者的分類 | id |
+| spaces | 儲存使用者的空間 | id |
 | collections | 儲存使用者的收藏集 | id |
 | user_settings | 儲存使用者偏好設定 | user_id |
 
 ---
 
 ## 資料表結構
+
+### categories
+
+儲存使用者的分類（最上層組織）。
+
+```sql
+CREATE TABLE categories (
+  id TEXT PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  color TEXT NOT NULL,
+  "order" INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 索引
+CREATE INDEX idx_categories_user_id ON categories(user_id);
+CREATE INDEX idx_categories_order ON categories("order");
+
+-- RLS (Row Level Security) 政策
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own categories"
+  ON categories FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own categories"
+  ON categories FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own categories"
+  ON categories FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own categories"
+  ON categories FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- 自動更新 updated_at 觸發器
+CREATE TRIGGER update_categories_updated_at
+  BEFORE UPDATE ON categories
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+```
+
+#### 欄位說明
+
+| 欄位 | 類型 | 說明 |
+|-----|------|------|
+| id | TEXT | 分類 UUID（與本地一致） |
+| user_id | UUID | 使用者 ID（外鍵至 auth.users） |
+| name | TEXT | 分類名稱 |
+| color | TEXT | 分類顏色（Hex 格式） |
+| order | INTEGER | 排序順序 |
+| created_at | TIMESTAMPTZ | 建立時間 |
+| updated_at | TIMESTAMPTZ | 更新時間 |
+
+---
+
+### spaces
+
+儲存使用者的空間（第二層組織，屬於分類）。
+
+```sql
+CREATE TABLE spaces (
+  id TEXT PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  category_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  "order" INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+);
+
+-- 索引
+CREATE INDEX idx_spaces_user_id ON spaces(user_id);
+CREATE INDEX idx_spaces_category_id ON spaces(category_id);
+CREATE INDEX idx_spaces_order ON spaces("order");
+
+-- RLS (Row Level Security) 政策
+ALTER TABLE spaces ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own spaces"
+  ON spaces FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own spaces"
+  ON spaces FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own spaces"
+  ON spaces FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own spaces"
+  ON spaces FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- 自動更新 updated_at 觸發器
+CREATE TRIGGER update_spaces_updated_at
+  BEFORE UPDATE ON spaces
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+```
+
+#### 欄位說明
+
+| 欄位 | 類型 | 說明 |
+|-----|------|------|
+| id | TEXT | 空間 UUID（與本地一致） |
+| user_id | UUID | 使用者 ID（外鍵至 auth.users） |
+| category_id | TEXT | 所屬分類 ID（外鍵至 categories） |
+| name | TEXT | 空間名稱 |
+| order | INTEGER | 排序順序 |
+| created_at | TIMESTAMPTZ | 建立時間 |
+| updated_at | TIMESTAMPTZ | 更新時間 |
+
+---
 
 ### collections
 
@@ -30,15 +152,18 @@
 CREATE TABLE collections (
   id TEXT PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  space_id TEXT NOT NULL,
   title TEXT NOT NULL,
   items JSONB NOT NULL DEFAULT '[]'::jsonb,
   is_open BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  FOREIGN KEY (space_id) REFERENCES spaces(id) ON DELETE CASCADE
 );
 
 -- 索引
 CREATE INDEX idx_collections_user_id ON collections(user_id);
+CREATE INDEX idx_collections_space_id ON collections(space_id);
 CREATE INDEX idx_collections_created_at ON collections(created_at);
 
 -- RLS (Row Level Security) 政策
@@ -81,6 +206,7 @@ CREATE TRIGGER update_collections_updated_at
 |-----|------|------|
 | id | TEXT | 收藏集 UUID（與本地一致） |
 | user_id | UUID | 使用者 ID（外鍵至 auth.users） |
+| space_id | TEXT | 所屬空間 ID（外鍵至 spaces） |
 | title | TEXT | 收藏集標題 |
 | items | JSONB | 書籤項目陣列（JSON 格式） |
 | is_open | BOOLEAN | 是否展開 |
@@ -187,7 +313,13 @@ CREATE TRIGGER update_user_settings_updated_at
 
 | 表格 | 索引 | 用途 |
 |-----|------|------|
+| categories | user_id | 快速查詢使用者的分類 |
+| categories | order | 按順序排序 |
+| spaces | user_id | 快速查詢使用者的空間 |
+| spaces | category_id | 快速查詢分類下的空間 |
+| spaces | order | 按順序排序 |
 | collections | user_id | 快速查詢使用者的收藏集 |
+| collections | space_id | 快速查詢空間下的收藏集 |
 | collections | created_at | 按建立時間排序 |
 
 ---
@@ -224,5 +356,6 @@ CREATE TRIGGER update_user_settings_updated_at
 
 | 日期 | 變更 | 影響 |
 |-----|------|-----|
+| 2026-01-02 | 新增 categories 和 spaces 表 | 支援四層架構（Category → Space → Collection → Item） |
 | 2025-12-31 | 初始化資料庫結構設計 | 建立表結構與 RLS 政策 |
 

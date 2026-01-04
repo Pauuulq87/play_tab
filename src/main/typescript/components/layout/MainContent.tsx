@@ -3,6 +3,7 @@ import { Settings, GripVertical, Tag, LayoutGrid, Plus, ChevronDown, ChevronRigh
 import { CollectionGroup, TabItem } from '@/models/types';
 import { addItemToCollection, createCollection, toggleCollectionOpen, removeItemFromCollection, updateItemInCollection } from '@/services/storageService';
 import { closeTab } from '@/services/tabService';
+import { fetchPreviewImageUrl } from '@/services/previewService';
 import EditItemModal from '../ui/EditItemModal';
 
 interface MainContentProps {
@@ -16,6 +17,7 @@ interface MainContentProps {
 }
 
 type ViewMode = 'card' | 'compact' | 'list';
+type ExtendedViewMode = ViewMode | 'tweet';
 
 const MainContent: React.FC<MainContentProps> = ({ 
   collections, 
@@ -27,7 +29,7 @@ const MainContent: React.FC<MainContentProps> = ({
   selectedSpaceName = '我的收藏 (My Collections)'
 }) => {
   const [editingItem, setEditingItem] = React.useState<{ item: TabItem; collectionId: string } | null>(null);
-  const [viewMode, setViewMode] = React.useState<ViewMode>('card');
+  const [viewMode, setViewMode] = React.useState<ExtendedViewMode>('card');
   const [showViewMenu, setShowViewMenu] = React.useState(false);
   const viewMenuRef = React.useRef<HTMLDivElement>(null);
   
@@ -80,6 +82,21 @@ const MainContent: React.FC<MainContentProps> = ({
       }
       
       onRefresh();
+
+      // 先顯示項目，再背景抓取預覽圖（若不存在）
+      if (newItem.url) {
+        void (async () => {
+          try {
+            const previewUrl = await fetchPreviewImageUrl(newItem.url!);
+            if (previewUrl) {
+              await updateItemInCollection(collectionId, newItem.id, { previewImageAutoUrl: previewUrl });
+              onRefresh();
+            }
+          } catch {
+            // ignore
+          }
+        })();
+      }
     } catch (error) {
       console.error('Failed to add item via drop:', error);
     }
@@ -140,7 +157,17 @@ const MainContent: React.FC<MainContentProps> = ({
     setEditingItem({ item, collectionId });
   };
 
-  const handleSaveItem = async (collectionId: string, itemId: string, updates: { title: string; url: string; description: string }) => {
+  const handleSaveItem = async (
+    collectionId: string,
+    itemId: string,
+    updates: {
+      title: string;
+      url: string;
+      description: string;
+      previewImageAutoUrl?: string;
+      previewImageUserDataUrl?: string;
+    }
+  ) => {
     try {
       await updateItemInCollection(collectionId, itemId, updates);
       onRefresh();
@@ -247,6 +274,17 @@ const MainContent: React.FC<MainContentProps> = ({
                 >
                   列表
                 </button>
+                <button
+                  onClick={() => {
+                    setViewMode('tweet');
+                    setShowViewMenu(false);
+                  }}
+                  className={`w-full px-4 py-2 text-left text-sm hover:bg-brand-hover/10 transition-colors ${
+                    viewMode === 'tweet' ? 'bg-brand-hover/20 text-brand-hover font-medium' : 'text-charcoal dark:text-gray-300'
+                  }`}
+                >
+                  推文
+                </button>
               </div>
             )}
           </div>
@@ -321,6 +359,7 @@ const MainContent: React.FC<MainContentProps> = ({
                 <div className={
                   viewMode === 'card' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' :
                   viewMode === 'compact' ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3' :
+                  viewMode === 'tweet' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4' :
                   'flex flex-col gap-2'
                 }>
                   {collection.items.length > 0 ? (
@@ -426,6 +465,98 @@ const MainContent: React.FC<MainContentProps> = ({
                             >
                               <Edit3 size={10} className="text-steel dark:text-gray-400 hover:text-brand-hover" />
                             </button>
+                          </div>
+                        );
+                      } else if (viewMode === 'tweet') {
+                        const previewUrl = item.previewImageUserDataUrl || item.previewImageAutoUrl;
+                        const host = item.url ? (() => { try { return new URL(item.url).host; } catch { return item.url; } })() : '';
+
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => handleCardClick(item.url)}
+                            className="
+                              bg-white dark:bg-[#1E1E1E] border border-steel dark:border-gray-700
+                              hover:border-brand-hover hover:bg-brand-hover/5 transition-all cursor-pointer
+                              p-4 relative group/item h-full flex flex-col
+                            "
+                          >
+                            {/* Top Meta + Actions */}
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 shrink-0 flex items-center justify-center rounded-full bg-paper dark:bg-gray-800 border border-steel dark:border-gray-600 overflow-hidden">
+                                  {item.favicon ? (
+                                    <img src={item.favicon} alt="" className="w-5 h-5" />
+                                  ) : (
+                                    <FileText size={16} className="text-steel dark:text-gray-400" />
+                                  )}
+                                </div>
+
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2 text-xs text-steel dark:text-gray-500 min-w-0">
+                                    {host && <span className="truncate min-w-0">{host}</span>}
+                                    {item.createdAt && (
+                                      <span className="shrink-0">
+                                        · {new Date(item.createdAt).toLocaleDateString('zh-TW').replace(/\//g, '-')}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  onClick={(e) => handleEditItem(e, item, collection.id)}
+                                  className="opacity-0 group-hover/item:opacity-100 transition-opacity p-2 hover:bg-brand-hover/10 rounded"
+                                  title="編輯"
+                                >
+                                  <Edit3 size={14} className="text-steel dark:text-gray-400 hover:text-brand-hover" />
+                                </button>
+                                <button
+                                  onClick={(e) => handleDeleteItem(e, collection.id, item.id)}
+                                  className="opacity-0 group-hover/item:opacity-100 transition-opacity p-2 hover:bg-red-500/10 rounded"
+                                  title="刪除"
+                                >
+                                  <X size={14} className="text-steel dark:text-gray-400 hover:text-red-500" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Title */}
+                            <h3
+                              title={item.title}
+                              className="
+                                mt-3 font-sans text-[16px] sm:text-[17px] font-semibold
+                                text-charcoal dark:text-gray-100 leading-snug
+                                [text-wrap:balance] break-words line-clamp-2
+                                group-hover/item:text-brand-hover transition-colors
+                              "
+                            >
+                              {item.title}
+                            </h3>
+
+                            {/* Body */}
+                            {item.description && (
+                              <p className="mt-2 text-sm text-charcoal/90 dark:text-gray-200 leading-relaxed line-clamp-2 break-words">
+                                {item.description}
+                              </p>
+                            )}
+
+                            {/* Preview Image */}
+                            {previewUrl && (
+                              <div className="mt-4 border border-steel/40 dark:border-gray-700 rounded overflow-hidden bg-steel/5 dark:bg-gray-800/30">
+                                <div className="w-full aspect-video">
+                                  <img
+                                    src={previewUrl}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       } else {

@@ -8,6 +8,8 @@ export interface TabItem {
   windowId?: number;
   description?: string;
   createdAt?: string; // ISO 8601 格式
+  previewImageAutoUrl?: string; // 由 URL 來源自動抓取（og:image / twitter:image）
+  previewImageUserDataUrl?: string; // 使用者上傳後裁切成固定比例的 data URL
 }
 
 export interface WindowGroup {
@@ -52,4 +54,3 @@ export interface UserSettings {
   enableShortcuts: boolean;
   enableTabGroups: boolean;
 }
-

@@ -82,14 +82,17 @@
 - [x] 7.1 UI: 最左側分類欄元件 (CategoryBar) [已完成]
 - [x] 7.2 UI: 新增分類對話框 (選擇顏色、命名) [已完成]
 - [x] 7.3 UI: 分類設定介面 (Settings，類似 Organization Settings) [已完成]
-- [ ] 7.4 Backend: Category 資料模型定義 (types.ts - 已定義，待實作 service) [待處理]
-- [ ] 7.5 Backend: categoryService.ts 建立 (CRUD 操作) [待處理]
-- [ ] 7.6 Backend: Category 與 Collection 的關聯邏輯 (CollectionGroup 需增加 categoryId) [待處理]
-- [ ] 7.7 Backend: Supabase categories 資料表設計與建立 [待處理]
-- [ ] 7.8 Backend: 分類顏色儲存與讀取 [待處理]
-- [ ] 7.9 整合: 分類切換時過濾顯示對應的 Collections [待處理]
-- [ ] 7.10 整合: 分類設定的編輯、刪除、匯出功能 [待處理]
-- [ ] 7.11 整合: App.tsx 中的臨時 mock categories 改為從 categoryService 讀取 [待處理]
+- [x] 7.4 Backend: Category 資料模型定義 (types.ts) [已完成]
+- [x] 7.5 Backend: categoryService.ts 建立 (CRUD 操作) [已完成]
+- [x] 7.6 Backend: Category、Space、Collection 的關聯邏輯 [已完成]
+- [x] 7.7 Backend: Supabase categories 和 spaces 資料表設計 [已完成]
+- [x] 7.8 Backend: 分類顏色儲存與讀取 [已完成]
+- [x] 7.9 整合: 分類切換時過濾顯示對應的 Spaces 和 Collections [已完成]
+- [x] 7.10 整合: 分類設定的編輯、刪除功能 [已完成]
+- [x] 7.11 整合: App.tsx 中的 mock categories 改為從 categoryService 讀取 [已完成]
+- [x] 7.12 整合: SpaceSettingsModal 與 CategorySettingsModal 功能實作 [已完成]
+- [x] 7.13 UI: 三種檢視模式（卡片、精簡、列表） [已完成]
+- [x] 7.14 UI: 編輯項目功能（EditItemModal） [已完成]
 
 ### 階段 8：測試與發布準備 (Testing & Release)
 
@@ -105,6 +108,8 @@
 
 | 日期 | 變更內容 | 狀態 |
 |-----|---------|:----:|
+| 2026-01-02 | 完成階段 7 所有任務：categoryService、四層架構整合、Supabase schema 更新 | 已完成 |
+| 2026-01-02 | 新增三種檢視模式（卡片、精簡、列表）與編輯項目功能 | 已完成 |
 | 2026-01-01 | 完成階段 7 UI 部分：CategoryBar、AddCategoryModal、CategorySettingsModal | 已完成 |
 | 2026-01-01 | 調整佈局：新增最左側分類欄，Account 移至分類欄底部 | 已完成 |
 | 2025-12-31 | 完成階段 6：介面整合與服務層接軌（App, Main, Sidebar, Settings） | 已完成 |

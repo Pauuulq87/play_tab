@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Sidebar, Download, X, ChevronDown, BookmarkPlus, Check } from 'lucide-react';
 import { TabItem, CollectionGroup, WindowGroup } from '@/models/types';
 import { queryAllWindowsWithTabs, activateTab, closeTab } from '@/services/tabService';
-import { addItemToCollection } from '@/services/storageService';
+import { addItemToCollection, updateItemInCollection } from '@/services/storageService';
+import { fetchPreviewImageUrl } from '@/services/previewService';
 
 interface RightSidebarProps {
   collections: CollectionGroup[];
@@ -86,6 +87,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ collections, onRefresh, aut
         title: tab.title,
         url: tab.url,
         favicon: tab.favicon,
+        createdAt: new Date().toISOString()
       };
       await addItemToCollection(collectionId, newItem);
       
@@ -100,6 +102,21 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ collections, onRefresh, aut
       
       onRefresh();
       await loadTabs(); // 重新載入分頁列表
+
+      // 背景抓取預覽圖（若不存在）
+      if (newItem.url) {
+        void (async () => {
+          try {
+            const previewUrl = await fetchPreviewImageUrl(newItem.url!);
+            if (previewUrl) {
+              await updateItemInCollection(collectionId, newItem.id, { previewImageAutoUrl: previewUrl });
+              onRefresh();
+            }
+          } catch {
+            // ignore
+          }
+        })();
+      }
       
       // 顯示成功動畫
       setTimeout(() => {

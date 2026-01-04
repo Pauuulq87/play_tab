@@ -36,7 +36,7 @@ const mockStorage = {
   }
 };
 
-const getStorage = () => {
+export const getStorage = () => {
   if (typeof chrome !== 'undefined' && chrome.storage) {
     return chrome.storage;
   }

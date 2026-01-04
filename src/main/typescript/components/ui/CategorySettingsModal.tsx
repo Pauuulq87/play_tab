@@ -6,16 +6,52 @@ interface CategorySettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedCategory: Category | null;
+  onUpdate: (category: Category) => Promise<void>;
+  onDelete: (categoryId: string) => Promise<void>;
 }
 
 const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
   isOpen,
   onClose,
-  selectedCategory
+  selectedCategory,
+  onUpdate,
+  onDelete
 }) => {
-  const [categoryName, setCategoryName] = useState(selectedCategory?.name || '');
+  const [categoryName, setCategoryName] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  React.useEffect(() => {
+    if (selectedCategory) {
+      setCategoryName(selectedCategory.name);
+    }
+  }, [selectedCategory]);
 
   if (!isOpen || !selectedCategory) return null;
+
+  const handleSaveName = async () => {
+    if (!categoryName.trim() || categoryName === selectedCategory.name) {
+      setIsEditingName(false);
+      return;
+    }
+
+    try {
+      await onUpdate({ ...selectedCategory, name: categoryName.trim() });
+      setIsEditingName(false);
+    } catch (error) {
+      console.error('Failed to update category name:', error);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await onDelete(selectedCategory.id);
+      setShowDeleteConfirm(false);
+      onClose();
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-[2px]">
@@ -74,13 +110,37 @@ const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
                 <label className="text-sm font-medium text-charcoal dark:text-gray-300">
                   分類名稱
                 </label>
-                <button className="text-sm text-brand-hover hover:underline">
-                  編輯
-                </button>
+                {!isEditingName ? (
+                  <button 
+                    onClick={() => setIsEditingName(true)}
+                    className="text-sm text-brand-hover hover:underline"
+                  >
+                    編輯
+                  </button>
+                ) : (
+                  <button 
+                    onClick={handleSaveName}
+                    className="text-sm text-brand-hover hover:underline"
+                  >
+                    儲存
+                  </button>
+                )}
               </div>
-              <div className="text-sm text-charcoal dark:text-gray-300 bg-steel/5 dark:bg-black/20 px-3 py-2 border border-steel dark:border-gray-600">
-                {selectedCategory.name}
-              </div>
+              {isEditingName ? (
+                <input
+                  type="text"
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
+                  onBlur={handleSaveName}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+                  className="w-full text-sm text-charcoal dark:text-gray-300 bg-white dark:bg-[#2D3042] px-3 py-2 border border-brand-hover dark:border-brand-hover focus:outline-none"
+                  autoFocus
+                />
+              ) : (
+                <div className="text-sm text-charcoal dark:text-gray-300 bg-steel/5 dark:bg-black/20 px-3 py-2 border border-steel dark:border-gray-600">
+                  {selectedCategory.name}
+                </div>
+              )}
             </div>
 
             {/* Theme */}
@@ -141,10 +201,13 @@ const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
                 <div>
                   <h3 className="text-sm font-medium text-charcoal dark:text-gray-300">刪除分類</h3>
                   <p className="text-xs text-steel dark:text-gray-500 mt-1">
-                    一旦刪除該分類，將無法復原。
+                    一旦刪除該分類，將無法復原。此分類下的所有空間和收藏集也會被刪除。
                   </p>
                 </div>
-                <button className="text-sm text-red-500 hover:underline flex items-center gap-1">
+                <button 
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="text-sm text-red-500 hover:underline flex items-center gap-1"
+                >
                   <Trash2 size={14} />
                   刪除分類
                 </button>
@@ -164,6 +227,37 @@ const CategorySettingsModal: React.FC<CategorySettingsModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center backdrop-blur-sm">
+          <div className="bg-white dark:bg-dark-surface rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="text-center">
+              <Trash2 size={48} className="text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-charcoal dark:text-white mb-2">
+                確認刪除分類？
+              </h3>
+              <p className="text-sm text-steel dark:text-gray-400 mb-4">
+                此操作無法復原。您確定要永久刪除「{selectedCategory.name}」分類及其所有空間和收藏集嗎？
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-4 py-2 text-sm text-charcoal dark:text-white rounded border border-steel dark:border-gray-600 hover:bg-steel/20 dark:hover:bg-gray-700 transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                >
+                  確認刪除
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
