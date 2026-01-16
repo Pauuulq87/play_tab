@@ -109,7 +109,40 @@ EOF
 echo "✅ 配置檔已建立：$CONFIG_DIR/clone.conf"
 ```
 
-### A-4. 完成訊息（首次建立）
+### A-4. 自動開啟 iTerm2 視窗
+
+Clone 建立完成後，自動開啟 iTerm2 視窗：
+
+```bash
+# 使用 osascript 開啟 iTerm2 視窗
+osascript << EOF
+tell application "iTerm2"
+    -- 建立新視窗
+    create window with default profile
+
+    tell current window
+        -- 為每個 Clone 建立分頁
+        repeat with i from 1 to $CLONE_COUNT
+            if i > 1 then
+                create tab with default profile
+            end if
+            tell current session
+                write text "cd '$LAB_DIR/clone-" & i & "' && echo '🟢 Clone-" & i & " Ready - $PROJECT_NAME' && claude"
+            end tell
+        end repeat
+
+        -- 切回第一個 Tab
+        select tab 1
+    end tell
+
+    activate
+end tell
+EOF
+
+echo "✅ 已開啟 iTerm2 視窗，每個 Clone 一個分頁"
+```
+
+### A-5. 完成訊息（首次建立）
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -117,14 +150,16 @@ echo "✅ 配置檔已建立：$CONFIG_DIR/clone.conf"
 ╚══════════════════════════════════════════════════════════════╝
 
 📁 Clone 位置：$LAB_DIR
-   ├── clone-1/
-   ├── clone-2/
+   ├── clone-1/  (已開啟 iTerm2 分頁)
+   ├── clone-2/  (已開啟 iTerm2 分頁)
    └── ...
 
+🖥️ iTerm2 視窗已自動開啟，每個 Clone 一個分頁。
+
 📋 下一步：
-   1. 在任一 Clone 中開始開發
-   2. 使用 /check-status 查看所有 Clone 狀態
-   3. 使用 /execute-task 執行開發任務
+   1. 切換到對應的 iTerm2 分頁
+   2. 在該 Clone 中開始開發
+   3. 使用 /check-status 查看所有 Clone 狀態
 
 提示：所有 Clone 都可以並行開發，通過 PR 合併到 main
 ```
