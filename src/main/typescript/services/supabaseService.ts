@@ -83,6 +83,7 @@ export const isAuthenticated = async (): Promise<boolean> => {
 export interface DbCollection {
   id: string;
   user_id: string;
+  space_id: string;
   title: string;
   items: any[];
   is_open: boolean;
@@ -102,6 +103,7 @@ export const syncCollectionsToCloud = async (collections: CollectionGroup[]): Pr
   const dbCollections: Omit<DbCollection, 'created_at' | 'updated_at'>[] = collections.map(c => ({
     id: c.id,
     user_id: user.id,
+    space_id: c.spaceId,
     title: c.title,
     items: c.items,
     is_open: c.isOpen,
@@ -139,6 +141,7 @@ export const fetchCollectionsFromCloud = async (): Promise<CollectionGroup[]> =>
   return (data as DbCollection[]).map(db => ({
     id: db.id,
     title: db.title,
+    spaceId: db.space_id,
     items: db.items,
     isOpen: db.is_open,
   }));
@@ -254,6 +257,8 @@ export interface SyncResult {
   success: boolean;
   localToCloud: boolean;
   cloudToLocal: boolean;
+  cloudCollections?: CollectionGroup[];
+  cloudSettings?: UserSettings;
   error?: string;
 }
 
@@ -283,10 +288,13 @@ export const performBidirectionalSync = async (
     const cloudCollections = await fetchCollectionsFromCloud();
     const cloudSettings = await fetchSettingsFromCloud();
 
+    // 返回合併後的資料
     return {
       success: true,
       localToCloud: true,
       cloudToLocal: true,
+      cloudCollections,
+      cloudSettings: cloudSettings || undefined,
     };
   } catch (error) {
     return {

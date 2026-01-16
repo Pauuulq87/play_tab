@@ -30,6 +30,10 @@ const mockStorage = {
         localStorage.setItem(k, JSON.stringify(v));
       });
     },
+    remove: async (keys: string | string[]) => {
+      const keysArray = Array.isArray(keys) ? keys : [keys];
+      keysArray.forEach(k => localStorage.removeItem(k));
+    },
     clear: async () => {
       localStorage.clear();
     }
