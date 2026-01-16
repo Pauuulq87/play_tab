@@ -149,11 +149,17 @@ const App: React.FC = () => {
   // 刪除分類
   const handleDeleteCategory = async (categoryId: string) => {
     try {
+      const selectedSpaceBelongsToDeletedCategory = selectedSpace?.categoryId === categoryId;
+
       await deleteCategory(categoryId);
       
       // 如果刪除的是當前選中的分類，清除選擇
       if (selectedCategoryId === categoryId) {
         setSelectedCategoryId(null);
+        setSelectedSpaceId(null);
+      }
+      // 即使目前沒選到該分類，但選到的 Space 在其底下，也要清掉避免 orphan
+      if (selectedSpaceBelongsToDeletedCategory) {
         setSelectedSpaceId(null);
       }
       

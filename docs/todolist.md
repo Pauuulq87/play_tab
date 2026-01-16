@@ -93,6 +93,7 @@
 - [x] 7.12 整合: SpaceSettingsModal 與 CategorySettingsModal 功能實作 [已完成]
 - [x] 7.13 UI: 三種檢視模式（卡片、精簡、列表） [已完成]
 - [x] 7.14 UI: 編輯項目功能（EditItemModal） [已完成]
+- [x] 7.15 修正: 刪除分類時級聯刪除底下 Spaces 與 Collections [已完成]
 
 ### 階段 8：測試與發布準備 (Testing & Release)
 
@@ -108,6 +109,7 @@
 
 | 日期 | 變更內容 | 狀態 |
 |-----|---------|:----:|
+| 2026-01-04 | 修正刪除分類：級聯刪除其底下 Spaces 與 Collections，避免孤兒資料 | 已完成 |
 | 2026-01-02 | 完成階段 7 所有任務：categoryService、四層架構整合、Supabase schema 更新 | 已完成 |
 | 2026-01-02 | 新增三種檢視模式（卡片、精簡、列表）與編輯項目功能 | 已完成 |
 | 2026-01-01 | 完成階段 7 UI 部分：CategoryBar、AddCategoryModal、CategorySettingsModal | 已完成 |
@@ -124,4 +126,3 @@
 | 2025-12-31 | 將 `backlog.md` 重新命名為 `todolist.md` | 已完成 |
 | 2025-12-31 | 初始化 Backlog 文件 | 已完成 |
 | 2025-12-31 | 完成階段 1：tabService、storageService、UserSettings 型別擴充 | 已完成 |
-

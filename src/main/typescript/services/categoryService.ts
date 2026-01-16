@@ -1,5 +1,6 @@
 import { Category } from '@/models/types';
-import { getStorage } from './storageService';
+import { getStorage, getCollections, saveCollections } from './storageService';
+import { getSpaces, saveSpaces } from './spaceService';
 
 const CATEGORIES_KEY = 'categories';
 
@@ -47,9 +48,23 @@ export const updateCategory = async (updatedCategory: Category): Promise<void> =
  * 刪除分類
  */
 export const deleteCategory = async (categoryId: string): Promise<void> => {
-  let categories = await getCategories();
-  categories = categories.filter(c => c.id !== categoryId);
-  await saveCategories(categories);
+  // 1) 刪除分類本身
+  const categories = await getCategories();
+  const remainingCategories = categories.filter(c => c.id !== categoryId);
+  await saveCategories(remainingCategories);
+
+  // 2) 級聯刪除該分類下的 Spaces
+  const spaces = await getSpaces();
+  const deletedSpaceIds = new Set(spaces.filter(s => s.categoryId === categoryId).map(s => s.id));
+  const remainingSpaces = spaces.filter(s => s.categoryId !== categoryId);
+  await saveSpaces(remainingSpaces);
+
+  // 3) 級聯刪除屬於被刪除 Spaces 的 Collections
+  if (deletedSpaceIds.size > 0) {
+    const collections = await getCollections();
+    const remainingCollections = collections.filter(c => !deletedSpaceIds.has(c.spaceId));
+    await saveCollections(remainingCollections);
+  }
 };
 
 /**
@@ -99,4 +114,3 @@ export const initializeMockCategories = async (): Promise<void> => {
 export const clearAllCategories = async (): Promise<void> => {
   await saveCategories([]);
 };
-
