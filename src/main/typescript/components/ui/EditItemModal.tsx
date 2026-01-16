@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Trash2 } from 'lucide-react';
-import { fetchPreviewImageUrl } from '@/services/previewService';
+import { X, Trash2, RefreshCw } from 'lucide-react';
+import { fetchPreviewImageUrl, fetchAllPreviewImages } from '@/services/previewService';
+import ImageSelectionModal from './ImageSelectionModal';
 
 interface EditItemModalProps {
   isOpen: boolean;
@@ -90,6 +91,9 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
   const [previewImageAutoUrl, setPreviewImageAutoUrl] = useState(item.previewImageAutoUrl || '');
   const [previewImageUserDataUrl, setPreviewImageUserDataUrl] = useState(item.previewImageUserDataUrl || '');
   const [isFetchingPreview, setIsFetchingPreview] = useState(false);
+  const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
+  const [fetchedImages, setFetchedImages] = useState<string[]>([]);
+  const [isFetchingAll, setIsFetchingAll] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -137,6 +141,30 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
     }
   };
 
+  const handleRefetchImages = async () => {
+    if (!url.trim()) {
+      alert('請先填寫網址');
+      return;
+    }
+
+    setIsSelectionModalOpen(true);
+    setIsFetchingAll(true);
+    try {
+      const images = await fetchAllPreviewImages(url.trim());
+      setFetchedImages(images);
+    } catch (error) {
+      console.error('Failed to refetch all images:', error);
+      setFetchedImages([]);
+    } finally {
+      setIsFetchingAll(false);
+    }
+  };
+
+  const handleSelectImage = (imageUrl: string) => {
+    setPreviewImageUserDataUrl(imageUrl);
+    setIsSelectionModalOpen(false);
+  };
+
   const handleSave = async () => {
     if (!title.trim() || !url.trim()) {
       alert('標題和網址不能為空');
@@ -145,8 +173,8 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
 
     try {
       setIsSaving(true);
-      await onSave(collectionId, item.id, { 
-        title: title.trim(), 
+      await onSave(collectionId, item.id, {
+        title: title.trim(),
         url: url.trim(),
         description: description.trim(),
         previewImageAutoUrl: previewImageAutoUrl || undefined,
@@ -247,13 +275,22 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
               <label className="text-sm font-sans text-charcoal dark:text-white font-medium">
                 預覽圖片（固定比例 16:9）
               </label>
-              <button
-                onClick={handleFetchAutoPreview}
-                disabled={isFetchingPreview}
-                className="text-xs text-steel dark:text-gray-400 hover:text-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isFetchingPreview ? '抓取中...' : '自動抓取'}
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleRefetchImages}
+                  className="p-1 text-steel dark:text-gray-400 hover:text-brand-hover transition-colors rounded-full hover:bg-steel/10 dark:hover:bg-gray-700/50"
+                  title="重新抓取圖片"
+                >
+                  <RefreshCw size={14} className={isFetchingAll ? 'animate-spin' : ''} />
+                </button>
+                <button
+                  onClick={handleFetchAutoPreview}
+                  disabled={isFetchingPreview}
+                  className="text-xs text-steel dark:text-gray-400 hover:text-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isFetchingPreview ? '抓取中...' : '自動抓取'}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
@@ -344,6 +381,14 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
           </div>
         </div>
       </div>
+
+      <ImageSelectionModal
+        isOpen={isSelectionModalOpen}
+        onClose={() => setIsSelectionModalOpen(false)}
+        images={fetchedImages}
+        isLoading={isFetchingAll}
+        onSelect={handleSelectImage}
+      />
     </div>
   );
 };
