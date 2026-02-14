@@ -1,8 +1,13 @@
 # CLAUDE.md — play_tab
 
-版本：1.0.0
-最後更新：2025-12-31
+版本：1.0.1
+最後更新：2026-02-14
 專案類型：Standard
+
+## 語言設定
+
+- 所有 code review 意見、PR 留言、Issue 回覆一律使用**繁體中文**
+- commit message 使用繁體中文
 
 ---
 
