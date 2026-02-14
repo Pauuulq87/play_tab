@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Info, Rocket, LogIn, Download, Upload, Trash2, RefreshCw } from 'lucide-react';
 import { UserSettings } from '@/models/types';
 import { getUserSettings, saveUserSettings } from '@/services/storageService';
-import { signIn, signOut, getCurrentUser, isAuthenticated, performBidirectionalSync } from '@/services/supabaseService';
+import { signIn, signUp, signOut, getCurrentUser, isAuthenticated, performBidirectionalSync } from '@/services/supabaseService';
 import { downloadJSON, importFromFile, mergeCollections, MergeStrategy } from '@/utils/exportImport';
 import { getCollections, saveCollections } from '@/services/storageService';
 import { closeDuplicateTabs } from '@/services/tabService';
@@ -29,6 +29,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const [password, setPassword] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [message, setMessage] = useState('');
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -66,11 +67,17 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await signIn(email, password);
-      await checkAuth();
-      setMessage('登入成功');
+      if (isRegisterMode) {
+        await signUp(email, password);
+        setMessage('註冊成功！請查看信箱確認郵件，確認後即可登入。');
+        setIsRegisterMode(false);
+      } else {
+        await signIn(email, password);
+        await checkAuth();
+        setMessage('登入成功');
+      }
     } catch (error) {
-      setMessage(`登入失敗: ${error instanceof Error ? error.message : '未知錯誤'}`);
+      setMessage(`${isRegisterMode ? '註冊' : '登入'}失敗: ${error instanceof Error ? error.message : '未知錯誤'}`);
     }
   };
 
@@ -191,8 +198,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   className="w-full bg-[#2D3042] border border-gray-600 p-2 text-sm focus:outline-none focus:border-brand-hover"
                 />
                 <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 text-sm transition-colors flex items-center justify-center gap-2">
-                  <LogIn size={16} /> 登入
+                  <LogIn size={16} /> {isRegisterMode ? '註冊' : '登入'}
                 </button>
+                <button 
+                  type="button"
+                  onClick={() => { setIsRegisterMode(!isRegisterMode); setMessage(''); }}
+                  className="w-full text-gray-400 hover:text-white text-xs py-1 transition-colors"
+                >
+                  {isRegisterMode ? '已有帳號？登入' : '沒有帳號？註冊'}
+                </button>
+                {message && <div className="text-xs text-center text-yellow-400 mt-1">{message}</div>}
                 <div className="border-b border-gray-600 mt-6"></div>
               </form>
             )}
