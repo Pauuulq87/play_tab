@@ -85,3 +85,7 @@ MIT
 ## 致謝
 
 Made with ❤️ by **Pauuulq87**
+
+## 開發流程
+
+本專案採用 GitHub PR Flow：開 branch → 提 PR → code review → 合併。
